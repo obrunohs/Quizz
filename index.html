@@ -872,7 +872,7 @@
           location.reload();
           return;
         }
-        if (checkHostLeft(room)) return;
+        if (checkPlayerLeft(room)) return;
         renderRoom(room);
         hostControls(room);
       });
@@ -882,11 +882,15 @@
       return Object.entries(room.players || {}).map(([id, data]) => ({ id, ...data }));
     }
 
-    function checkHostLeft(room) {
+    function checkPlayerLeft(room) {
+      const players = getPlayersArray(room);
+      const onlinePlayers = players.filter((player) => player.online !== false);
+      const iAmInRoom = players.some((player) => player.id === playerId);
+      const someoneLeft = iAmInRoom && players.length >= 2 && onlinePlayers.length < 2;
       const host = room.players?.[room.hostId];
       const hostIsGone = room.hostLeft === true || !host || host.online === false;
 
-      if (!hostIsGone || room.hostId === playerId || hostLeftHandled) {
+      if ((!someoneLeft && !hostIsGone) || hostLeftHandled) {
         return false;
       }
 
@@ -894,11 +898,14 @@
       clearInterval(localTimer);
       clearTimeout(hostTimer);
 
+      const leftPlayer = players.find((player) => player.online === false);
+      const leftName = hostIsGone ? "O dono da sala" : (leftPlayer?.name || "O outro jogador");
+
       startOverlay.style.display = "flex";
       gameContent.classList.add("blurred");
-      overlayTitle.textContent = "Dono da sala saiu";
+      overlayTitle.textContent = "Jogador saiu";
       startCountdown.textContent = "!";
-      overlayText.textContent = "O jogador dono da sala deixou o jogo. Você será movido para o lobby.";
+      overlayText.textContent = `${leftName} deixou o jogo. Você será movido para o lobby.`;
       statusBox.textContent = "Voltando para o lobby...";
 
       hostLeftTimeout = setTimeout(() => {
