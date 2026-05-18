@@ -157,15 +157,15 @@
 
     .reaction-bubble {
       position: absolute;
-      left: calc(100% + 8px);
-      top: -10px;
-      min-width: 34px;
-      max-width: 130px;
-      padding: 7px 10px;
+      left: calc(100% + 10px);
+      top: -12px;
+      min-width: 42px;
+      max-width: 175px;
+      padding: 9px 13px;
       border-radius: 999px 999px 999px 6px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       color: #111;
-      font-size: 18px;
+      font-size: 23px;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
@@ -179,9 +179,9 @@
     }
 
     .reaction-bubble.text-reaction {
-      font-size: 12px;
-      padding: 7px 11px;
-      max-width: 150px;
+      font-size: 15px;
+      padding: 9px 13px;
+      max-width: 195px;
     }
 
     @keyframes bubblePop {
@@ -688,7 +688,7 @@
       }
 
       .emoji-reactions {
-        gap: 10px;
+        gap: 12px;
       }
 
       .emoji-reactions button {
@@ -698,15 +698,16 @@
       }
 
       .reaction-bubble {
-        left: calc(100% + 5px);
-        top: -8px;
-        font-size: 16px;
+        left: calc(100% + 6px);
+        top: -9px;
+        font-size: 19px;
+        padding: 7px 10px;
       }
 
       .reaction-bubble.text-reaction {
-        font-size: 10px;
-        max-width: 120px;
-        padding: 6px 8px;
+        font-size: 12px;
+        max-width: 145px;
+        padding: 7px 10px;
       }
 
       .pick-labels {
@@ -815,7 +816,7 @@
       }
 
       .emoji-reactions {
-        gap: 9px;
+        gap: 11px;
       }
 
       .emoji-reactions button {
@@ -932,6 +933,18 @@
             <button type="button" data-reaction="vamos de novo?">vamos de novo?</button>
           </div>
         </aside>
+      </div>
+
+      <div class="emoji-reactions" id="emojiReactions">
+        <button type="button" data-emoji="😂">😂</button>
+        <button type="button" data-emoji="🤣">🤣</button>
+        <button type="button" data-emoji="😅">😅</button>
+        <button type="button" data-emoji="😎">😎</button>
+        <button type="button" data-emoji="🤬">🤬</button>
+        <button type="button" data-emoji="😠">😠</button>
+        <button type="button" data-emoji="👎">👎</button>
+        <button type="button" data-emoji="👍">👍</button>
+        <button type="button" data-emoji="😮">😮</button>
       </div>
     </div>
   </main>
@@ -1316,12 +1329,9 @@
       const q = questions[qIndex];
 
       roomTitle.textContent = room.name || "Quiz Online";
-      player1Name.textContent = p1?.name || "Aguardando";
-      player2Name.textContent = p2?.name || "Aguardando";
-
       const reactions = room.reactions || {};
-      showReactionBubble(player1Name, p1 ? reactions[p1.id] : null);
-      showReactionBubble(player2Name, p2 ? reactions[p2.id] : null);
+      setPlayerNameWithReaction(player1Name, p1?.name || "Aguardando", p1 ? reactions[p1.id] : null);
+      setPlayerNameWithReaction(player2Name, p2?.name || "Aguardando", p2 ? reactions[p2.id] : null);
       player1Box.classList.toggle("me", p1?.id === playerId);
       player2Box.classList.toggle("me", p2?.id === playerId);
       score1Box.textContent = scores[p1?.id] || 0;
@@ -1470,16 +1480,45 @@
       });
     }
 
+    function setPlayerNameWithReaction(nameElement, name, reaction) {
+      if (nameElement.dataset.playerName !== name) {
+        nameElement.dataset.playerName = name;
+        nameElement.textContent = name;
+        nameElement.dataset.reactionKey = "";
+      }
+
+      showReactionBubble(nameElement, reaction);
+    }
+
     function showReactionBubble(nameElement, reaction) {
       const oldBubble = nameElement.querySelector(".reaction-bubble");
-      if (oldBubble) oldBubble.remove();
 
-      if (!reaction || !reaction.value) return;
-      if (Date.now() - (reaction.updatedAt || 0) > 4000) return;
+      if (!reaction || !reaction.value) {
+        if (oldBubble) oldBubble.remove();
+        nameElement.dataset.reactionKey = "";
+        return;
+      }
+
+      const reactionTime = reaction.updatedAt || 0;
+      const age = Date.now() - reactionTime;
+      const reactionKey = `${reaction.value}_${reaction.type || "emoji"}_${reactionTime}`;
+
+      if (age > 4000) {
+        if (oldBubble) oldBubble.remove();
+        nameElement.dataset.reactionKey = "";
+        return;
+      }
+
+      if (oldBubble && nameElement.dataset.reactionKey === reactionKey) {
+        return;
+      }
+
+      if (oldBubble) oldBubble.remove();
 
       const bubble = document.createElement("span");
       bubble.className = reaction.type === "text" ? "reaction-bubble text-reaction" : "reaction-bubble";
       bubble.textContent = reaction.value;
+      nameElement.dataset.reactionKey = reactionKey;
       nameElement.appendChild(bubble);
     }
 
