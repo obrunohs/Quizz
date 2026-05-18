@@ -1402,6 +1402,7 @@
 
     function renderRoom(room) {
       if (room.phase === "countdown" || room.phase === "playing" || room.phase === "reveal") {
+        lobbyScreen.style.display = "none";
         winnerScreen.style.display = "none";
         gameScreen.style.display = "block";
       }
@@ -1473,19 +1474,28 @@
     }
 
     function renderCountdown(room) {
+      lobbyScreen.style.display = "none";
+      winnerScreen.style.display = "none";
+      gameScreen.style.display = "block";
+
       gameContent.classList.add("blurred");
       startOverlay.style.display = "flex";
-      overlayTitle.textContent = "Preparem-se!";
-      overlayText.textContent = "O quiz vai começar...";
+      overlayTitle.textContent = (room.matchNumber || 1) > 1 ? "Revanche aceita!" : "Preparem-se!";
+      overlayText.textContent = (room.matchNumber || 1) > 1 ? "Redirecionando para o jogo..." : "O quiz vai começar...";
+      startCountdown.style.display = "block";
       answersBox.innerHTML = "";
       statusBox.textContent = "Aguardando início.";
+      timerBox.textContent = "--";
 
       clearInterval(localTimer);
-      localTimer = setInterval(() => {
+
+      function updateCountdownText() {
         const remaining = Math.max(0, Math.ceil((room.countdownEndsAt - nowServer()) / 1000));
         startCountdown.textContent = remaining;
-        timerBox.textContent = "--";
-      }, 200);
+      }
+
+      updateCountdownText();
+      localTimer = setInterval(updateCountdownText, 200);
     }
 
     function renderQuestion(room, reveal) {
@@ -1791,7 +1801,12 @@
       const rematch = room.rematch || {};
       const accepted = players.filter((player) => rematch[player.id]).length;
 
-      rematchStatus.textContent = `Revanche: ${accepted}/${players.length} aceitaram.`;
+      if (accepted === players.length && players.length === 2) {
+        rematchStatus.textContent = "Revanche aceita! Redirecionando para o jogo...";
+      } else {
+        rematchStatus.textContent = `Revanche: ${accepted}/${players.length} aceitaram.`;
+      }
+
       rematchBtn.disabled = !!rematch[playerId];
       rematchBtn.textContent = rematch[playerId] ? "Você aceitou" : "Revanche";
     }
@@ -1800,13 +1815,16 @@
       const nextMatch = (room.matchNumber || 1) + 1;
       lastHandledRound = -1;
 
+      lobbyScreen.style.display = "none";
       winnerScreen.style.display = "none";
       gameScreen.style.display = "block";
       gameContent.classList.add("blurred");
       startOverlay.style.display = "flex";
-      overlayTitle.textContent = "Preparem-se!";
-      overlayText.textContent = "A revanche vai começar...";
+      overlayTitle.textContent = "Revanche aceita!";
+      overlayText.textContent = "Redirecionando para o jogo...";
+      startCountdown.style.display = "block";
       startCountdown.textContent = "5";
+      timerBox.textContent = "--";
 
       await update(ref(db, `rooms/${currentRoomId}`), {
         phase: "countdown",
@@ -1822,7 +1840,6 @@
 
     async function renderWinner(room, players) {
       clearInterval(localTimer);
-      await backToPortraitMode();
       gameScreen.style.display = "none";
       winnerScreen.style.display = "block";
 
