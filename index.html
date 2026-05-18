@@ -419,14 +419,16 @@
       text-overflow: ellipsis;
     }
 
-    .emoji-reactions {
+        .emoji-reactions {
       display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
       justify-content: center;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 999px;
+      flex-wrap: nowrap;
     }
 
     .emoji-reactions button {
@@ -434,14 +436,15 @@
       height: 34px;
       border: none;
       border-radius: 50%;
-      cursor: pointer;
       font-size: 18px;
-      background: rgba(255, 255, 255, 0.92);
+      cursor: pointer;
+      background: rgba(255,255,255,0.18);
       transition: 0.15s;
     }
 
     .emoji-reactions button:hover {
-      transform: scale(1.12);
+      transform: scale(1.15);
+      background: rgba(255,255,255,0.32);
     }
 
     .player-emoji {
@@ -567,6 +570,38 @@
     }
 
     @media (orientation: landscape) and (max-height: 520px) {
+
+      .emoji-reactions {
+        position: fixed;
+        left: 50%;
+        bottom: 8px;
+        transform: translateX(-50%);
+        width: min(760px, calc(100vw - 24px));
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+
+        padding: 8px 12px;
+        border-radius: 999px;
+
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(4px);
+
+        z-index: 50;
+      }
+
+      .emoji-reactions button {
+        width: 30px;
+        height: 30px;
+        font-size: 17px;
+        margin: 0;
+      }
+
+      .quick-chat {
+        gap: 9px 8px;
+      }
       body {
         padding: 8px 8px 58px;
         align-items: flex-start;
