@@ -151,6 +151,45 @@
     .player h2 {
       font-size: 22px;
       margin-bottom: 8px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .reaction-bubble {
+      position: absolute;
+      left: calc(100% + 8px);
+      top: -10px;
+      min-width: 34px;
+      max-width: 130px;
+      padding: 7px 10px;
+      border-radius: 999px 999px 999px 6px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #111;
+      font-size: 18px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transform: scale(0);
+      opacity: 0;
+      pointer-events: none;
+      animation: bubblePop 4s ease forwards;
+      z-index: 5;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .reaction-bubble.text-reaction {
+      font-size: 12px;
+      padding: 7px 11px;
+      max-width: 150px;
+    }
+
+    @keyframes bubblePop {
+      0% { transform: scale(0.2) translateY(10px); opacity: 0; }
+      12% { transform: scale(1.18) translateY(0); opacity: 1; }
+      20% { transform: scale(1) translateY(0); opacity: 1; }
+      82% { transform: scale(1) translateY(0); opacity: 1; }
+      100% { transform: scale(0.75) translateY(-8px); opacity: 0; }
     }
 
     .choice-text {
@@ -406,16 +445,7 @@
     }
 
     .player-emoji {
-      display: inline-block;
-      margin-left: 6px;
-      font-size: 24px;
-      vertical-align: middle;
-      animation: emojiPop 0.25s ease;
-    }
-
-    @keyframes emojiPop {
-      from { transform: scale(0.4); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      display: none;
     }
 
     .rematch-box {
@@ -632,12 +662,13 @@
 
       .quick-chat {
         grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
+        gap: 8px 7px;
+        margin-top: 10px;
       }
 
       .quick-chat button {
         font-size: 9px;
-        padding: 4px 5px;
+        padding: 6px 5px;
       }
 
       .emoji-reactions {
@@ -656,10 +687,26 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       }
 
+      .emoji-reactions {
+        gap: 10px;
+      }
+
       .emoji-reactions button {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
+        font-size: 17px;
+      }
+
+      .reaction-bubble {
+        left: calc(100% + 5px);
+        top: -8px;
         font-size: 16px;
+      }
+
+      .reaction-bubble.text-reaction {
+        font-size: 10px;
+        max-width: 120px;
+        padding: 6px 8px;
       }
 
       .pick-labels {
@@ -758,15 +805,23 @@
         padding: 5px 8px;
       }
 
+      .quick-chat {
+        gap: 7px 6px;
+      }
+
       .quick-chat button {
         font-size: 8px;
-        padding: 3px 4px;
+        padding: 5px 4px;
+      }
+
+      .emoji-reactions {
+        gap: 9px;
       }
 
       .emoji-reactions button {
-        width: 25px;
-        height: 25px;
-        font-size: 14px;
+        width: 27px;
+        height: 27px;
+        font-size: 15px;
       }
     }
   </style>
@@ -864,29 +919,17 @@
             <button type="submit">Enviar</button>
           </form>
           <div class="quick-chat">
-            <button type="button" data-msg="kkkk">kkkk</button>
-            <button type="button" data-msg="tu chutou">tu chutou</button>
-            <button type="button" data-msg="fácil">fácil</button>
-            <button type="button" data-msg="andaa">andaa</button>
-            <button type="button" data-msg="fraco">fraco</button>
-            <button type="button" data-msg="mds">mds</button>
-            <button type="button" data-msg="vai perder">vai perder</button>
-            <button type="button" data-msg="nossa">nossa</button>
-            <button type="button" data-msg="sim">sim</button>
-            <button type="button" data-msg="não">não</button>
-            <button type="button" data-msg="vamos de novo?">vamos de novo?</button>
-          </div>
-
-          <div class="emoji-reactions" id="emojiReactions">
-            <button type="button" data-emoji="😂">😂</button>
-            <button type="button" data-emoji="🤣">🤣</button>
-            <button type="button" data-emoji="😅">😅</button>
-            <button type="button" data-emoji="😎">😎</button>
-            <button type="button" data-emoji="🤬">🤬</button>
-            <button type="button" data-emoji="😠">😠</button>
-            <button type="button" data-emoji="👎">👎</button>
-            <button type="button" data-emoji="👍">👍</button>
-            <button type="button" data-emoji="😮">😮</button>
+            <button type="button" data-reaction="kkkk">kkkk</button>
+            <button type="button" data-reaction="tu chutou">tu chutou</button>
+            <button type="button" data-reaction="fácil">fácil</button>
+            <button type="button" data-reaction="andaa">andaa</button>
+            <button type="button" data-reaction="fraco">fraco</button>
+            <button type="button" data-reaction="mds">mds</button>
+            <button type="button" data-reaction="vai perder">vai perder</button>
+            <button type="button" data-reaction="nossa">nossa</button>
+            <button type="button" data-reaction="sim">sim</button>
+            <button type="button" data-reaction="não">não</button>
+            <button type="button" data-reaction="vamos de novo?">vamos de novo?</button>
           </div>
         </aside>
       </div>
@@ -1024,11 +1067,11 @@
     });
 
     document.querySelectorAll(".quick-chat button").forEach((button) => {
-      button.addEventListener("click", () => sendChatMessage(button.dataset.msg));
+      button.addEventListener("click", () => sendReaction(button.dataset.reaction, "text"));
     });
 
     document.querySelectorAll(".emoji-reactions button").forEach((button) => {
-      button.addEventListener("click", () => sendEmojiReaction(button.dataset.emoji));
+      button.addEventListener("click", () => sendReaction(button.dataset.emoji, "emoji"));
     });
 
     rematchBtn.addEventListener("click", async () => {
@@ -1277,8 +1320,8 @@
       player2Name.textContent = p2?.name || "Aguardando";
 
       const reactions = room.reactions || {};
-      player1Emoji.textContent = p1 ? (reactions[p1.id]?.emoji || "") : "";
-      player2Emoji.textContent = p2 ? (reactions[p2.id]?.emoji || "") : "";
+      showReactionBubble(player1Name, p1 ? reactions[p1.id] : null);
+      showReactionBubble(player2Name, p2 ? reactions[p2.id] : null);
       player1Box.classList.toggle("me", p1?.id === playerId);
       player2Box.classList.toggle("me", p2?.id === playerId);
       score1Box.textContent = scores[p1?.id] || 0;
@@ -1417,13 +1460,27 @@
       });
     }
 
-    async function sendEmojiReaction(emoji) {
+    async function sendReaction(value, type = "emoji") {
       if (!currentRoomId) return;
 
       await update(ref(db, `rooms/${currentRoomId}/reactions/${playerId}`), {
-        emoji,
+        value,
+        type,
         updatedAt: Date.now()
       });
+    }
+
+    function showReactionBubble(nameElement, reaction) {
+      const oldBubble = nameElement.querySelector(".reaction-bubble");
+      if (oldBubble) oldBubble.remove();
+
+      if (!reaction || !reaction.value) return;
+      if (Date.now() - (reaction.updatedAt || 0) > 4000) return;
+
+      const bubble = document.createElement("span");
+      bubble.className = reaction.type === "text" ? "reaction-bubble text-reaction" : "reaction-bubble";
+      bubble.textContent = reaction.value;
+      nameElement.appendChild(bubble);
     }
 
     function renderChat(room) {
