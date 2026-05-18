@@ -389,51 +389,66 @@
       inset: 0;
       pointer-events: none;
       z-index: 70;
+      background: radial-gradient(circle, rgba(255, 105, 0, 0.16), rgba(60, 0, 0, 0.34));
+      animation: fireFade 5s ease forwards;
+    }
+
+    .burned-answers .answer {
+      pointer-events: none !important;
+      color: transparent !important;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(70, 70, 70, 0.95), transparent 20%),
+        radial-gradient(circle at 75% 55%, rgba(20, 20, 20, 0.98), transparent 30%),
+        linear-gradient(135deg, #050505, #2d2113, #000000) !important;
+      border: 2px solid rgba(255, 94, 0, 0.8);
+      box-shadow: inset 0 0 25px rgba(255, 87, 0, 0.7), 0 0 18px rgba(255, 87, 0, 0.45);
+      animation: answerBurn 5s ease forwards;
+    }
+
+    .burned-answers .answer::before {
+      content: "🔥";
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      font-size: 34px;
+      color: white;
+      animation: flameFlicker 0.25s infinite alternate;
     }
 
-    .pie-splat {
-      width: 120vmax;
-      height: 120vmax;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.96) 0 18%, rgba(245,222,179,0.94) 19% 32%, rgba(255,255,255,0.85) 33% 44%, rgba(255,255,255,0.55) 45% 55%, transparent 56%);
-      filter: blur(3px);
-      animation: pieSplat 5s ease forwards;
+    @keyframes answerBurn {
+      0% { transform: scale(1); filter: brightness(1); }
+      14% { transform: scale(1.04) rotate(-1deg); filter: brightness(1.4) saturate(1.8); }
+      45% { transform: scale(1) rotate(1deg); filter: brightness(0.55) grayscale(0.5); }
+      100% { transform: scale(0.98); filter: brightness(0.35) grayscale(0.9); }
     }
 
-    @keyframes pieSplat {
-      0% { transform: scale(0.04); opacity: 0; }
-      15% { transform: scale(0.72); opacity: 1; }
-      75% { transform: scale(0.78); opacity: 0.97; }
-      100% { transform: scale(1.08); opacity: 0; }
+    @keyframes flameFlicker {
+      from { transform: scale(0.9) translateY(2px); opacity: 0.75; }
+      to { transform: scale(1.25) translateY(-3px); opacity: 1; }
     }
 
-    .freeze-effect {
-      background: rgba(150, 220, 255, 0.28);
-      backdrop-filter: blur(5px) saturate(1.3);
-      animation: freezeFade 5s ease forwards;
-    }
-
-    .freeze-effect::before {
-      content: "🥶";
-      font-size: 110px;
-      animation: freezePulse 1s ease infinite alternate;
-    }
-
-    .freeze-effect::after {
-      content: "";
+    .fire-flame {
       position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(45deg, rgba(255,255,255,0.22) 0 3px, transparent 3px 16px);
+      bottom: -70px;
+      font-size: 48px;
+      animation: flameRise 2.2s ease-in forwards;
+      filter: drop-shadow(0 0 12px orange);
     }
 
-    @keyframes freezeFade {
+    @keyframes fireFade {
       0% { opacity: 0; }
-      12% { opacity: 1; }
+      10% { opacity: 1; }
       82% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes flameRise {
+      0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translateY(-115vh) scale(1.6) rotate(18deg); opacity: 0; }
+    }opacity: 1; }
       100% { opacity: 0; }
     }
 
@@ -480,6 +495,29 @@
       pointer-events: none;
       overflow: hidden;
       z-index: 60;
+    }
+
+    .answer-emoji-sticker {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.18);
+      font-size: 28px;
+      letter-spacing: 3px;
+      text-shadow: 0 3px 8px rgba(0,0,0,0.65);
+      animation: stickerPulse 5s ease forwards;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    @keyframes stickerPulse {
+      0% { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+      10% { opacity: 1; transform: scale(1.12) rotate(4deg); }
+      80% { opacity: 1; transform: scale(1) rotate(-2deg); }
+      100% { opacity: 0; transform: scale(0.75) rotate(8deg); }
     }
 
     .emoji-float {
@@ -1875,7 +1913,7 @@
       }
 
       if (latest.powerId === "fire") {
-        showPowerToast(`🔥 ${fromName} queimou suas perguntas!`);
+        showPowerToast(`🔥 ${fromName} queimou suas respostas!`);
         startFireEffect();
       }
 
@@ -1896,11 +1934,21 @@
 
     function startEmojiSpam() {
       const emojis = ["😂", "🤣", "😅", "😎", "😮"];
+      const buttons = document.querySelectorAll(".answer");
+
+      buttons.forEach((button, index) => {
+        const sticker = document.createElement("div");
+        sticker.className = "answer-emoji-sticker";
+        sticker.textContent = Array.from({ length: 8 }, () => emojis[(index + Math.floor(Math.random() * emojis.length)) % emojis.length]).join(" ");
+        button.appendChild(sticker);
+        setTimeout(() => sticker.remove(), 5100);
+      });
+
       const rain = document.createElement("div");
       rain.className = "emoji-rain";
       document.body.appendChild(rain);
 
-      for (let i = 0; i < 75; i++) {
+      for (let i = 0; i < 35; i++) {
         const emoji = document.createElement("div");
         emoji.className = "emoji-float";
         emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
@@ -1932,8 +1980,9 @@
       const effect = document.createElement("div");
       effect.className = "fire-effect";
       document.body.appendChild(effect);
+      gameContent.classList.add("burned-answers");
 
-      for (let i = 0; i < 35; i++) {
+      for (let i = 0; i < 25; i++) {
         const flame = document.createElement("div");
         flame.className = "fire-flame";
         flame.textContent = Math.random() > 0.25 ? "🔥" : "💥";
@@ -1942,7 +1991,19 @@
         effect.appendChild(flame);
       }
 
-      setTimeout(() => effect.remove(), 5200);
+      setTimeout(() => {
+        effect.remove();
+        gameContent.classList.remove("burned-answers");
+      }, 5200);
+    }
+
+    function shuffleText(text, seed) {
+      const chars = String(text).split("");
+      for (let i = chars.length - 1; i > 0; i--) {
+        const j = Math.abs(Math.floor(Math.sin(seed + i * 999) * 10000)) % (i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      return chars.join("");
     }
 
     function getDisplayOptions(room, q) {
@@ -1955,11 +2016,10 @@
       const mapped = q.options.map((text, originalIndex) => ({ text, originalIndex }));
       if (!activeShuffle) return mapped;
 
-      return mapped.sort((a, b) => {
-        const seedA = Math.sin((a.originalIndex + 1) * (activeShuffle.createdAt || 1));
-        const seedB = Math.sin((b.originalIndex + 1) * (activeShuffle.createdAt || 1));
-        return seedA - seedB;
-      });
+      return mapped.map((item) => ({
+        ...item,
+        text: shuffleText(item.text, (activeShuffle.createdAt || 1) + item.originalIndex)
+      }));
     }
 
     function renderQuestion(room, reveal) {
