@@ -770,6 +770,26 @@
       }
     }
 
+    async function backToPortraitMode() {
+      if (!isMobileDevice()) return;
+
+      try {
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock("portrait");
+        }
+
+        if (document.fullscreenElement && document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.log("Não foi possível voltar a tela para retrato:", error);
+      }
+    }
+
     function getNameOrAlert() {
       const name = document.getElementById("playerNameInput").value.trim();
       if (!name) {
@@ -908,7 +928,8 @@
       overlayText.textContent = `${leftName} deixou o jogo. Você será movido para o lobby.`;
       statusBox.textContent = "Voltando para o lobby...";
 
-      hostLeftTimeout = setTimeout(() => {
+      hostLeftTimeout = setTimeout(async () => {
+        await backToPortraitMode();
         currentRoomId = "";
         hostLeftHandled = false;
         gameScreen.style.display = "none";
@@ -1192,8 +1213,9 @@
       });
     }
 
-    function renderWinner(room, players) {
+    async function renderWinner(room, players) {
       clearInterval(localTimer);
+      await backToPortraitMode();
       gameScreen.style.display = "none";
       winnerScreen.style.display = "block";
 
