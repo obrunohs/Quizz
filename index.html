@@ -401,7 +401,7 @@
     .quick-chat {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 5px;
+      gap: 8px 7px;
       margin-top: 8px;
     }
 
@@ -508,6 +508,34 @@
     .countdown-number {
       font-size: 86px;
       font-weight: bold;
+    }
+
+    .emoji-reactions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      justify-items: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 18px;
+    }
+
+    .emoji-reactions button {
+      width: 38px;
+      height: 38px;
+      border: none;
+      border-radius: 50%;
+      font-size: 21px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.18);
+      transition: 0.15s;
+    }
+
+    .emoji-reactions button:hover {
+      transform: scale(1.15);
+      background: rgba(255, 255, 255, 0.32);
     }
 
     @media (max-width: 760px) {
@@ -636,6 +664,11 @@
         border-radius: 14px;
       }
 
+      .chat-messages,
+      .chat-form {
+        display: none !important;
+      }
+
       .chat-box h2 {
         font-size: 14px;
         margin-bottom: 5px;
@@ -662,8 +695,8 @@
 
       .quick-chat {
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px 7px;
-        margin-top: 10px;
+        gap: 9px 7px;
+        margin-top: 6px;
       }
 
       .quick-chat button {
@@ -913,39 +946,13 @@
         </section>
 
         <aside class="chat-box">
-          <h2>Chat da sala</h2>
-          <div class="chat-messages" id="chatMessages"></div>
-          <form class="chat-form" id="chatForm">
+          <h2>Reações rápidas</h2>
+          <div class="chat-messages" id="chatMessages" style="display:none"></div>
+          <form class="chat-form" id="chatForm" style="display:none">
             <input id="chatInput" type="text" maxlength="80" placeholder="Mensagem..." />
             <button type="submit">Enviar</button>
           </form>
-          <div class="quick-chat">
-            <button type="button" data-reaction="kkkk">kkkk</button>
-            <button type="button" data-reaction="tu chutou">tu chutou</button>
-            <button type="button" data-reaction="fácil">fácil</button>
-            <button type="button" data-reaction="andaa">andaa</button>
-            <button type="button" data-reaction="fraco">fraco</button>
-            <button type="button" data-reaction="mds">mds</button>
-            <button type="button" data-reaction="vai perder">vai perder</button>
-            <button type="button" data-reaction="nossa">nossa</button>
-            <button type="button" data-reaction="sim">sim</button>
-            <button type="button" data-reaction="não">não</button>
-            <button type="button" data-reaction="vamos de novo?">vamos de novo?</button>
-          </div>
-        </aside>
-      </div>
-
-      <div class="emoji-reactions" id="emojiReactions">
-        <button type="button" data-emoji="😂">😂</button>
-        <button type="button" data-emoji="🤣">🤣</button>
-        <button type="button" data-emoji="😅">😅</button>
-        <button type="button" data-emoji="😎">😎</button>
-        <button type="button" data-emoji="🤬">🤬</button>
-        <button type="button" data-emoji="😠">😠</button>
-        <button type="button" data-emoji="👎">👎</button>
-        <button type="button" data-emoji="👍">👍</button>
-        <button type="button" data-emoji="😮">😮</button>
-      </div>
+          <div class="quick-chat">$1          </div>
     </div>
   </main>
 
@@ -969,6 +976,7 @@
       ref,
       get,
       set,
+      remove,
       update,
       onValue,
       runTransaction,
@@ -1098,9 +1106,19 @@
       const rooms = snapshot.val() || {};
       publicRoomsList.innerHTML = "";
 
+      Object.entries(rooms).forEach(([id, room]) => {
+        const players = Object.values(room.players || {});
+        const onlineCount = players.filter((player) => player.online !== false).length;
+
+        if (onlineCount === 0) {
+          remove(ref(db, `rooms/${id}`));
+        }
+      });
+
       const publicRooms = Object.entries(rooms).filter(([id, room]) => {
-        const count = room.players ? Object.keys(room.players).length : 0;
-        return !room.locked && room.phase === "waiting" && count < 2;
+        const players = Object.values(room.players || {});
+        const onlineCount = players.filter((player) => player.online !== false).length;
+        return !room.locked && !room.hostLeft && room.phase === "waiting" && onlineCount > 0 && onlineCount < 2;
       });
 
       if (publicRooms.length === 0) {
@@ -1223,9 +1241,9 @@
       const result = await runTransaction(roomRef, (room) => {
         if (!room) return room;
         const players = room.players || {};
-        const count = Object.keys(players).length;
+        const onlineCount = Object.values(players).filter((player) => player.online !== false).length;
 
-        if (!players[playerId] && count >= 2) {
+        if (!players[playerId] && onlineCount >= 2) {
           return;
         }
 
