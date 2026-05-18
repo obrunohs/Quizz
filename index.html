@@ -2197,16 +2197,10 @@
             from: playerId,
             target: opponentId,
             round,
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            applied: false
           };
         } else {
-          if (powerId === "witch") {
-            room.scores = room.scores || {};
-            const stolenPoints = room.scores[opponentId] || 0;
-            room.scores[playerId] = (room.scores[playerId] || 0) + stolenPoints;
-            room.scores[opponentId] = 0;
-          }
-
           room.powerEffects[`${Date.now()}_${playerId}`] = {
             powerId,
             from: playerId,
@@ -2245,6 +2239,25 @@
         return;
       }
 
+      if (latest.powerId === "witch") {
+        setTimeout(() => playSound("witch", { duration: 4000, volume: 0.9 }), 3000);
+        const playersArray = getPlayersArray(room);
+        const fromIndex = playersArray.findIndex((player) => player.id === latest.from);
+        const targetIndex = playersArray.findIndex((player) => player.id === latest.target);
+        const leftToRight = fromIndex < targetIndex;
+
+        if (latest.target === playerId) {
+          showPowerToast(`🧙‍♀️ ${fromName} mandou a bruxa roubar seus pontos!`);
+        } else if (latest.from === playerId) {
+          showPowerToast(`🧙‍♀️ Sua bruxa está indo roubar os pontos!`);
+        } else {
+          showPowerToast(`🧙‍♀️ A bruxa passou voando!`);
+        }
+
+        startWitchEffect(leftToRight);
+        return;
+      }
+
       if (latest.target !== playerId) return;
 
       if (latest.powerId === "shake") {
@@ -2278,15 +2291,6 @@
         startFireEffect();
       }
 
-      if (latest.powerId === "witch") {
-        setTimeout(() => playSound("witch", { duration: 4000, volume: 0.9 }), 3000);
-        const playersArray = getPlayersArray(room);
-        const fromIndex = playersArray.findIndex((player) => player.id === latest.from);
-        const targetIndex = playersArray.findIndex((player) => player.id === latest.target);
-        const leftToRight = fromIndex < targetIndex;
-        showPowerToast(`🧙‍♀️ ${fromName} roubou todos os seus pontos!`);
-        startWitchEffect(leftToRight);
-      }
 
       if (latest.powerId === "shuffle") {
         playSound("shuffle", { duration: 5000, volume: 0.85 });
@@ -2674,6 +2678,8 @@
       if (room.hostId !== playerId) return;
       const players = getPlayersArray(room);
 
+      await handleWitchSteal(room);
+
       if (room.phase === "finished") {
         const rematch = room.rematch || {};
         const everyoneAccepted = players.length === 2 && players.every((player) => rematch[player.id]);
@@ -2738,6 +2744,38 @@
           });
         }
       }
+    }
+
+    async function handleWitchSteal(room) {
+      const effects = room.powerEffects || {};
+      const pending = Object.entries(effects).find(([key, effect]) => {
+        return effect.powerId === "witch" && !effect.applied;
+      });
+
+      if (!pending) return;
+
+      const [effectKey, effect] = pending;
+      const delay = effect.createdAt + 7000 - Date.now();
+
+      if (delay > 0) {
+        scheduleHostCheck(delay + 150);
+        return;
+      }
+
+      await runTransaction(ref(db, `rooms/${currentRoomId}`), (latestRoom) => {
+        if (!latestRoom) return latestRoom;
+
+        const latestEffect = latestRoom.powerEffects?.[effectKey];
+        if (!latestEffect || latestEffect.applied) return latestRoom;
+
+        latestRoom.scores = latestRoom.scores || {};
+        const stolenPoints = latestRoom.scores[latestEffect.target] || 0;
+        latestRoom.scores[latestEffect.from] = (latestRoom.scores[latestEffect.from] || 0) + stolenPoints;
+        latestRoom.scores[latestEffect.target] = 0;
+        latestRoom.powerEffects[effectKey].applied = true;
+
+        return latestRoom;
+      });
     }
 
     async function revealRound(room, players) {
