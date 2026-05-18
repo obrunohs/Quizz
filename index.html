@@ -638,12 +638,19 @@
       z-index: 75;
     }
 
-    .witch-img {
+        .witch-img {
       position: absolute;
       top: 36%;
       width: 150px;
       height: auto;
+
+      background: transparent !important;
+      mix-blend-mode: normal;
+      image-rendering: auto;
+
       filter: drop-shadow(0 0 18px rgba(180, 80, 255, 0.9));
+
+      pointer-events: none;
     }
 
     .witch-left-to-right {
@@ -2146,6 +2153,7 @@
         ? "https://raw.githubusercontent.com/obrunohs/Quizz/main/bruxa-direita.png"
         : "https://raw.githubusercontent.com/obrunohs/Quizz/main/bruxa-esquerda.png";
       img.alt = "Bruxa voando";
+      img.style.background = "transparent";
 
       effect.appendChild(img);
       document.body.appendChild(effect);
