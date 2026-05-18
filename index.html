@@ -398,6 +398,18 @@
       overflow: hidden;
     }
 
+    .main-game-area {
+      position: relative;
+    }
+
+    .main-game-area .pie-effect {
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      z-index: 12;
+      pointer-events: none;
+    }
+
     .pie-effect {
       background: rgba(133, 86, 22, 0.35);
       backdrop-filter: blur(10px) saturate(1.35);
@@ -459,6 +471,8 @@
       background: rgba(130, 220, 255, 0.38);
       backdrop-filter: blur(7px) saturate(1.45);
       animation: freezeFade 5s ease forwards;
+      pointer-events: auto;
+      cursor: not-allowed;
     }
 
     .freeze-effect::before {
@@ -621,7 +635,7 @@
       font-weight: bold;
       z-index: 80;
       opacity: 0;
-      animation: toastShow 2.2s ease forwards;
+      animation: toastShow 5s ease forwards;
     }
 
     @keyframes toastShow {
@@ -2004,7 +2018,7 @@
       toast.className = "power-toast";
       toast.textContent = text;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 2300);
+      setTimeout(() => toast.remove(), 5200);
     }
 
     function startEmojiSpam() {
@@ -2040,7 +2054,10 @@
       const effect = document.createElement("div");
       effect.className = "pie-effect";
       effect.innerHTML = `<div class="pie-splat"></div>`;
-      document.body.appendChild(effect);
+
+      const target = document.querySelector(".main-game-area") || gameContent;
+      target.appendChild(effect);
+
       setTimeout(() => effect.remove(), 5200);
     }
 
