@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Online 2 Jogadores</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 1000px;
+      background: rgba(0, 0, 0, 0.38);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    .small-box {
+      max-width: 470px;
+      text-align: center;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 34px;
+      color: #ffdf5d;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .input-group input {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 18px;
+      outline: none;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .check-row input {
+      width: 20px;
+      height: 20px;
+    }
+
+    .menu-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #ffdf5d;
+      color: #222;
+      transition: 0.2s;
+      margin: 5px;
+    }
+
+    .menu-btn:hover {
+      transform: scale(1.04);
+    }
+
+    .secondary-btn {
+      background: #2f80ed;
+      color: white;
+    }
+
+    .room-code {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffdf5d;
+    }
+
+    .room-list {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .room-item {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .top-bar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .player {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .player.me {
+      border: 3px solid #ffdf5d;
+    }
+
+    .player h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .choice-text {
+      min-height: 22px;
+      margin-top: 6px;
+      color: #bde0ff;
+      font-size: 14px;
+    }
+
+    .score {
+      font-size: 34px;
+      font-weight: bold;
+      color: #ffdf5d;
+    }
+
+    .timer-box {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      border: 6px solid #ffdf5d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .question-card {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .round {
+      color: #bde0ff;
+      font-size: 16px;
+    }
+
+    .question {
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 1.3;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .answer {
+      border: none;
+      border-radius: 18px;
+      padding: 18px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      background: #2f80ed;
+      transition: 0.2s;
+      min-height: 76px;
+      position: relative;
+    }
+
+    .answer:hover {
+      transform: scale(1.03);
+      background: #56ccf2;
+    }
+
+    .answer.mine {
+      outline: 4px solid #ffdf5d;
+    }
+
+    .answer.correct {
+      background: #27ae60;
+    }
+
+    .answer.wrong {
+      background: #eb5757;
+    }
+
+    .answer:disabled {
+      cursor: not-allowed;
+      opacity: 0.9;
+      transform: none;
+    }
+
+    .status {
+      text-align: center;
+      font-size: 20px;
+      min-height: 32px;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .help {
+      margin-top: 12px;
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    #lobbyScreen,
+    #gameScreen,
+    #winnerScreen {
+      display: none;
+    }
+
+    #gameScreen {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #gameContent.blurred {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .countdown-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      border-radius: 24px;
+    }
+
+    .countdown-overlay h2 {
+      font-size: 32px;
+      margin-bottom: 14px;
+      color: #ffdf5d;
+    }
+
+    .countdown-number {
+      font-size: 86px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 760px) {
+      .top-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .timer-box {
+        margin: auto;
+      }
+
+      .answers {
+        grid-template-columns: 1fr;
+      }
+
+      .question {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="box small-box" id="lobbyScreen">
+    <h1>Quiz Online</h1>
+
+    <div class="input-group">
+      <label for="playerNameInput">Seu nome</label>
+      <input id="playerNameInput" type="text" placeholder="Digite seu nome" />
+    </div>
+
+    <h2>Criar sala</h2>
+    <div class="input-group">
+      <label for="roomNameInput">Nome da sala</label>
+      <input id="roomNameInput" type="text" placeholder="Ex: sala do Bruno" />
+    </div>
+
+    <label class="check-row">
+      <input id="lockedRoomInput" type="checkbox" />
+      Trancar sala, não mostrar na lista pública
+    </label>
+
+    <button class="menu-btn" id="createRoomBtn">Criar sala</button>
+
+    <hr style="margin: 22px 0; opacity: 0.2" />
+
+    <h2>Entrar por código</h2>
+    <div class="input-group">
+      <label for="roomCodeInput">Código da sala</label>
+      <input id="roomCodeInput" type="text" placeholder="Ex: ABC123" />
+    </div>
+    <button class="menu-btn secondary-btn" id="joinRoomBtn">Entrar na sala</button>
+
+    <hr style="margin: 22px 0; opacity: 0.2" />
+
+    <h2>Salas públicas</h2>
+    <div class="room-list" id="publicRoomsList">Carregando salas...</div>
+
+    <p class="help">
+      Cada sala aceita no máximo 2 jogadores. Quando o segundo jogador entrar, o jogo começa com 5 segundos de espera.
+    </p>
+  </section>
+
+  <main class="box" id="gameScreen">
+    <div class="countdown-overlay" id="startOverlay">
+      <h2 id="overlayTitle">Preparem-se!</h2>
+      <div class="countdown-number" id="startCountdown">5</div>
+      <p id="overlayText">O quiz vai começar...</p>
+    </div>
+
+    <div id="gameContent">
+      <h1 id="roomTitle">Quiz Online</h1>
+      <div class="room-code" id="roomCodeText"></div>
+
+      <div class="top-bar">
+        <div class="player" id="player1Box">
+          <h2 id="player1Name">Aguardando</h2>
+          <div class="score" id="score1">0</div>
+          <div class="choice-text" id="choice1">Não respondeu</div>
+        </div>
+
+        <div class="timer-box" id="timer">--</div>
+
+        <div class="player" id="player2Box">
+          <h2 id="player2Name">Aguardando</h2>
+          <div class="score" id="score2">0</div>
+          <div class="choice-text" id="choice2">Não respondeu</div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <div class="round" id="roundText">Aguardando jogadores...</div>
+        <div class="question" id="questionText">A sala começa quando tiver 2 jogadores.</div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="status" id="status"></div>
+
+      <p class="help">
+        Qualquer jogador pode clicar na resposta. Cada um pode trocar sua escolha até o tempo acabar.
+        O resultado só aparece depois dos 10 segundos.
+      </p>
+    </div>
+  </main>
+
+  <section class="box small-box" id="winnerScreen">
+    <h1 id="winnerText"></h1>
+    <p id="finalScore"></p>
+    <br />
+    <button class="menu-btn" onclick="location.reload()">Voltar ao início</button>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      update,
+      onValue,
+      runTransaction,
+      serverTimestamp,
+      onDisconnect
+    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3acd3Q7nPemj3pR5kJrlC9szWMzmuNbg",
+      authDomain: "quizz-2b0b3.firebaseapp.com",
+      databaseURL: "https://quizz-2b0b3-default-rtdb.firebaseio.com",
+      projectId: "quizz-2b0b3",
+      storageBucket: "quizz-2b0b3.firebasestorage.app",
+      messagingSenderId: "832667219983",
+      appId: "1:832667219983:web:c5765622f05d6f0c5ccb7a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const questions = [
+      { question: "Qual é o maior planeta do Sistema Solar?", options: ["Terra", "Marte", "Júpiter", "Vênus", "Saturno", "Netuno"], correct: 2 },
+      { question: "Quanto é 8 x 7?", options: ["54", "56", "64", "48", "49", "58"], correct: 1 },
+      { question: "Qual animal é conhecido como rei da selva?", options: ["Tigre", "Leão", "Elefante", "Lobo", "Onça", "Urso"], correct: 1 },
+      { question: "Qual país é famoso pela Torre Eiffel?", options: ["Itália", "França", "Espanha", "Alemanha", "Portugal", "Canadá"], correct: 1 },
+      { question: "Qual cor nasce da mistura de azul com amarelo?", options: ["Verde", "Roxo", "Laranja", "Rosa", "Marrom", "Cinza"], correct: 0 },
+      { question: "Quantos lados tem um triângulo?", options: ["2", "3", "4", "5", "6", "8"], correct: 1 },
+      { question: "Qual é o oceano que banha o Brasil?", options: ["Pacífico", "Índico", "Atlântico", "Ártico", "Antártico", "Mediterrâneo"], correct: 2 },
+      { question: "Qual destes é um esporte com bola?", options: ["Natação", "Futebol", "Corrida", "Xadrez", "Judô", "Skate"], correct: 1 },
+      { question: "Qual fruta é amarela e curva?", options: ["Maçã", "Banana", "Uva", "Melancia", "Pera", "Morango"], correct: 1 },
+      { question: "Qual é o resultado de 100 dividido por 4?", options: ["20", "25", "30", "40", "50", "10"], correct: 1 },
+      { question: "Qual personagem usa bigode e roupa vermelha nos jogos da Nintendo?", options: ["Sonic", "Mario", "Link", "Kirby", "Pikachu", "Luigi"], correct: 1 },
+      { question: "Qual desses é um instrumento musical?", options: ["Violão", "Mesa", "Janela", "Caderno", "Sapato", "Prato"], correct: 0 },
+      { question: "Qual é a capital do Brasil?", options: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Curitiba", "Fortaleza"], correct: 2 },
+      { question: "Qual destes animais vive na água?", options: ["Cachorro", "Gato", "Peixe", "Cavalo", "Leão", "Galinha"], correct: 2 },
+      { question: "Qual número vem depois do 99?", options: ["98", "100", "101", "90", "110", "109"], correct: 1 },
+      { question: "Qual destes é usado para navegar na internet?", options: ["Chrome", "Martelo", "Fogão", "Copo", "Cadeira", "Chave"], correct: 0 },
+      { question: "Qual destes é um meio de transporte?", options: ["Bicicleta", "Banana", "Livro", "Camiseta", "Prato", "Caneta"], correct: 0 },
+      { question: "Qual planeta é conhecido como planeta vermelho?", options: ["Terra", "Marte", "Júpiter", "Mercúrio", "Urano", "Saturno"], correct: 1 },
+      { question: "Quantas letras tem a palavra QUIZ?", options: ["2", "3", "4", "5", "6", "7"], correct: 2 },
+      { question: "Qual destes é um país?", options: ["Brasil", "Amazonas", "Santos", "Bahia", "Copacabana", "Ipanema"], correct: 0 }
+    ];
+
+    const playerId = localStorage.getItem("quizPlayerId") || crypto.randomUUID();
+    localStorage.setItem("quizPlayerId", playerId);
+
+    let myName = "";
+    let currentRoomId = "";
+    let localTimer = null;
+    let unsubscribeRoom = null;
+    let lastHandledRound = -1;
+
+    const lobbyScreen = document.getElementById("lobbyScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const winnerScreen = document.getElementById("winnerScreen");
+    const publicRoomsList = document.getElementById("publicRoomsList");
+    const roomTitle = document.getElementById("roomTitle");
+    const roomCodeText = document.getElementById("roomCodeText");
+    const player1Name = document.getElementById("player1Name");
+    const player2Name = document.getElementById("player2Name");
+    const player1Box = document.getElementById("player1Box");
+    const player2Box = document.getElementById("player2Box");
+    const score1Box = document.getElementById("score1");
+    const score2Box = document.getElementById("score2");
+    const choice1 = document.getElementById("choice1");
+    const choice2 = document.getElementById("choice2");
+    const timerBox = document.getElementById("timer");
+    const roundText = document.getElementById("roundText");
+    const questionText = document.getElementById("questionText");
+    const answersBox = document.getElementById("answers");
+    const statusBox = document.getElementById("status");
+    const gameContent = document.getElementById("gameContent");
+    const startOverlay = document.getElementById("startOverlay");
+    const startCountdown = document.getElementById("startCountdown");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const winnerText = document.getElementById("winnerText");
+    const finalScore = document.getElementById("finalScore");
+
+    lobbyScreen.style.display = "block";
+
+    document.getElementById("createRoomBtn").onclick = createRoom;
+    document.getElementById("joinRoomBtn").onclick = () => {
+      const code = document.getElementById("roomCodeInput").value.trim().toUpperCase();
+      joinRoom(code);
+    };
+
+    onValue(ref(db, "rooms"), (snapshot) => {
+      const rooms = snapshot.val() || {};
+      publicRoomsList.innerHTML = "";
+
+      const publicRooms = Object.entries(rooms).filter(([id, room]) => {
+        const count = room.players ? Object.keys(room.players).length : 0;
+        return !room.locked && room.phase === "waiting" && count < 2;
+      });
+
+      if (publicRooms.length === 0) {
+        publicRoomsList.textContent = "Nenhuma sala pública disponível.";
+        return;
+      }
+
+      publicRooms.forEach(([id, room]) => {
+        const item = document.createElement("div");
+        item.className = "room-item";
+        item.innerHTML = `<span>${room.name} <b>(${id})</b></span>`;
+        const btn = document.createElement("button");
+        btn.className = "menu-btn secondary-btn";
+        btn.textContent = "Entrar";
+        btn.onclick = () => joinRoom(id);
+        item.appendChild(btn);
+        publicRoomsList.appendChild(item);
+      });
+    });
+
+    function getNameOrAlert() {
+      const name = document.getElementById("playerNameInput").value.trim();
+      if (!name) {
+        alert("Digite seu nome primeiro.");
+        return null;
+      }
+      myName = name;
+      return name;
+    }
+
+    function makeRoomId() {
+      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    async function createRoom() {
+      const name = getNameOrAlert();
+      if (!name) return;
+
+      const roomName = document.getElementById("roomNameInput").value.trim() || `Sala de ${name}`;
+      const locked = document.getElementById("lockedRoomInput").checked;
+      const roomId = makeRoomId();
+
+      await set(ref(db, `rooms/${roomId}`), {
+        name: roomName,
+        locked,
+        createdAt: serverTimestamp(),
+        hostId: playerId,
+        phase: "waiting",
+        currentQuestion: 0,
+        scores: {},
+        players: {
+          [playerId]: {
+            name,
+            joinedAt: serverTimestamp(),
+            online: true
+          }
+        }
+      });
+
+      await onDisconnect(ref(db, `rooms/${roomId}/players/${playerId}/online`)).set(false);
+      openRoom(roomId);
+    }
+
+    async function joinRoom(roomId) {
+      const name = getNameOrAlert();
+      if (!name) return;
+      if (!roomId) {
+        alert("Digite o código da sala.");
+        return;
+      }
+
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const result = await runTransaction(roomRef, (room) => {
+        if (!room) return room;
+        const players = room.players || {};
+        const count = Object.keys(players).length;
+
+        if (!players[playerId] && count >= 2) {
+          return;
+        }
+
+        if (room.phase !== "waiting" && !players[playerId]) {
+          return;
+        }
+
+        players[playerId] = {
+          name,
+          joinedAt: players[playerId]?.joinedAt || Date.now(),
+          online: true
+        };
+
+        room.players = players;
+        return room;
+      });
+
+      if (!result.committed) {
+        alert("Não foi possível entrar. A sala está cheia ou o jogo já começou.");
+        return;
+      }
+
+      await onDisconnect(ref(db, `rooms/${roomId}/players/${playerId}/online`)).set(false);
+      openRoom(roomId);
+    }
+
+    function openRoom(roomId) {
+      currentRoomId = roomId;
+      lobbyScreen.style.display = "none";
+      winnerScreen.style.display = "none";
+      gameScreen.style.display = "block";
+      roomCodeText.textContent = `Código da sala: ${roomId}`;
+
+      if (unsubscribeRoom) unsubscribeRoom();
+      unsubscribeRoom = onValue(ref(db, `rooms/${roomId}`), (snapshot) => {
+        const room = snapshot.val();
+        if (!room) {
+          alert("Sala encerrada.");
+          location.reload();
+          return;
+        }
+        renderRoom(room);
+        hostControls(room);
+      });
+    }
+
+    function getPlayersArray(room) {
+      return Object.entries(room.players || {}).map(([id, data]) => ({ id, ...data }));
+    }
+
+    function renderRoom(room) {
+      const players = getPlayersArray(room);
+      const p1 = players[0];
+      const p2 = players[1];
+      const scores = room.scores || {};
+      const answers = room.answers || {};
+      const qIndex = room.currentQuestion || 0;
+      const q = questions[qIndex];
+
+      roomTitle.textContent = room.name || "Quiz Online";
+      player1Name.textContent = p1?.name || "Aguardando";
+      player2Name.textContent = p2?.name || "Aguardando";
+      player1Box.classList.toggle("me", p1?.id === playerId);
+      player2Box.classList.toggle("me", p2?.id === playerId);
+      score1Box.textContent = scores[p1?.id] || 0;
+      score2Box.textContent = scores[p2?.id] || 0;
+
+      choice1.textContent = answers[p1?.id] !== undefined ? "Respondeu" : "Não respondeu";
+      choice2.textContent = answers[p2?.id] !== undefined ? "Respondeu" : "Não respondeu";
+
+      if (players.length < 2) {
+        gameContent.classList.remove("blurred");
+        startOverlay.style.display = "none";
+        timerBox.textContent = "--";
+        roundText.textContent = "Aguardando jogadores...";
+        questionText.textContent = "Compartilhe o código da sala com outro jogador.";
+        answersBox.innerHTML = "";
+        statusBox.textContent = "Quando tiver 2 jogadores, a partida começa.";
+        return;
+      }
+
+      if (room.phase === "countdown") {
+        renderCountdown(room);
+        return;
+      }
+
+      if (room.phase === "playing") {
+        gameContent.classList.remove("blurred");
+        startOverlay.style.display = "none";
+        renderQuestion(room, false);
+        return;
+      }
+
+      if (room.phase === "reveal") {
+        gameContent.classList.remove("blurred");
+        startOverlay.style.display = "none";
+        renderQuestion(room, true);
+        return;
+      }
+
+      if (room.phase === "finished") {
+        renderWinner(room, players);
+      }
+    }
+
+    function renderCountdown(room) {
+      gameContent.classList.add("blurred");
+      startOverlay.style.display = "flex";
+      overlayTitle.textContent = "Preparem-se!";
+      overlayText.textContent = "O quiz vai começar...";
+      answersBox.innerHTML = "";
+      statusBox.textContent = "Aguardando início.";
+
+      clearInterval(localTimer);
+      localTimer = setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((room.countdownEndsAt - Date.now()) / 1000));
+        startCountdown.textContent = remaining;
+        timerBox.textContent = "--";
+      }, 200);
+    }
+
+    function renderQuestion(room, reveal) {
+      const qIndex = room.currentQuestion || 0;
+      const q = questions[qIndex];
+      const answers = room.answers || {};
+      const myAnswer = answers[playerId];
+
+      roundText.textContent = `Rodada ${qIndex + 1} de ${questions.length}`;
+      questionText.textContent = q.question;
+      answersBox.innerHTML = "";
+
+      q.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "answer";
+        button.textContent = option;
+
+        if (myAnswer === index) button.classList.add("mine");
+
+        if (reveal) {
+          button.disabled = true;
+          if (index === q.correct) button.classList.add("correct");
+          if (myAnswer === index && index !== q.correct) button.classList.add("wrong");
+        } else {
+          button.onclick = () => sendAnswer(index);
+        }
+
+        answersBox.appendChild(button);
+      });
+
+      clearInterval(localTimer);
+      localTimer = setInterval(() => {
+        if (reveal) return;
+        const remaining = Math.max(0, Math.ceil((room.questionEndsAt - Date.now()) / 1000));
+        timerBox.textContent = remaining;
+      }, 200);
+
+      if (reveal) {
+        timerBox.textContent = "0";
+        statusBox.textContent = room.lastResultText || "Resultado da rodada.";
+      } else {
+        statusBox.textContent = myAnswer !== undefined ? "Você respondeu. Pode trocar até o tempo acabar." : "Escolha uma alternativa.";
+      }
+    }
+
+    async function sendAnswer(index) {
+      if (!currentRoomId) return;
+      await update(ref(db, `rooms/${currentRoomId}/answers`), {
+        [playerId]: index
+      });
+    }
+
+    async function hostControls(room) {
+      if (room.hostId !== playerId) return;
+      const players = getPlayersArray(room);
+
+      if (room.phase === "waiting" && players.length === 2) {
+        await update(ref(db, `rooms/${currentRoomId}`), {
+          phase: "countdown",
+          countdownEndsAt: Date.now() + 5000
+        });
+        return;
+      }
+
+      if (room.phase === "countdown" && Date.now() >= room.countdownEndsAt) {
+        await update(ref(db, `rooms/${currentRoomId}`), {
+          phase: "playing",
+          currentQuestion: 0,
+          answers: null,
+          questionEndsAt: Date.now() + 10000
+        });
+        return;
+      }
+
+      if (room.phase === "playing" && Date.now() >= room.questionEndsAt) {
+        await revealRound(room, players);
+        return;
+      }
+
+      if (room.phase === "reveal" && room.revealEndsAt && Date.now() >= room.revealEndsAt) {
+        const next = (room.currentQuestion || 0) + 1;
+        if (next >= questions.length) {
+          await update(ref(db, `rooms/${currentRoomId}`), { phase: "finished" });
+        } else {
+          await update(ref(db, `rooms/${currentRoomId}`), {
+            phase: "playing",
+            currentQuestion: next,
+            answers: null,
+            lastResultText: null,
+            questionEndsAt: Date.now() + 10000
+          });
+        }
+      }
+    }
+
+    async function revealRound(room, players) {
+      const qIndex = room.currentQuestion || 0;
+      if (lastHandledRound === qIndex) return;
+      lastHandledRound = qIndex;
+
+      const q = questions[qIndex];
+      const answers = room.answers || {};
+      const scores = room.scores || {};
+      const p1 = players[0];
+      const p2 = players[1];
+      const p1Correct = answers[p1.id] === q.correct;
+      const p2Correct = answers[p2.id] === q.correct;
+      let text = "";
+
+      if (p1Correct && !p2Correct) {
+        scores[p1.id] = (scores[p1.id] || 0) + 1;
+        text = `${p1.name} venceu a rodada!`;
+      } else if (p2Correct && !p1Correct) {
+        scores[p2.id] = (scores[p2.id] || 0) + 1;
+        text = `${p2.name} venceu a rodada!`;
+      } else if (p1Correct && p2Correct) {
+        scores[p1.id] = (scores[p1.id] || 0) + 1;
+        scores[p2.id] = (scores[p2.id] || 0) + 1;
+        text = "Os dois acertaram! Ponto para os dois.";
+      } else {
+        text = "Os dois erraram! Ninguém pontuou.";
+      }
+
+      await update(ref(db, `rooms/${currentRoomId}`), {
+        phase: "reveal",
+        scores,
+        lastResultText: text,
+        revealEndsAt: Date.now() + 3000
+      });
+    }
+
+    function renderWinner(room, players) {
+      clearInterval(localTimer);
+      gameScreen.style.display = "none";
+      winnerScreen.style.display = "block";
+
+      const scores = room.scores || {};
+      const p1 = players[0];
+      const p2 = players[1];
+      const s1 = scores[p1?.id] || 0;
+      const s2 = scores[p2?.id] || 0;
+
+      if (s1 > s2) {
+        winnerText.textContent = `${p1.name} venceu!`;
+      } else if (s2 > s1) {
+        winnerText.textContent = `${p2.name} venceu!`;
+      } else {
+        winnerText.textContent = "Empate!";
+      }
+
+      finalScore.textContent = `Placar final: ${p1.name} ${s1} x ${s2} ${p2.name}`;
+    }
+  </script>
+</body>
+</html>
