@@ -419,6 +419,7 @@
     import {
       getDatabase,
       ref,
+      get,
       set,
       update,
       onValue,
@@ -469,8 +470,10 @@
     let myName = "";
     let currentRoomId = "";
     let localTimer = null;
+    let hostTimer = null;
     let unsubscribeRoom = null;
     let lastHandledRound = -1;
+    let serverOffset = 0;
 
     const lobbyScreen = document.getElementById("lobbyScreen");
     const gameScreen = document.getElementById("gameScreen");
@@ -500,6 +503,10 @@
     const finalScore = document.getElementById("finalScore");
 
     lobbyScreen.style.display = "block";
+
+    onValue(ref(db, ".info/serverTimeOffset"), (snapshot) => {
+      serverOffset = snapshot.val() || 0;
+    });
 
     document.getElementById("createRoomBtn").onclick = createRoom;
     document.getElementById("joinRoomBtn").onclick = () => {
@@ -697,6 +704,10 @@
       }
     }
 
+    function nowServer() {
+      return Date.now() + serverOffset;
+    }
+
     function renderCountdown(room) {
       gameContent.classList.add("blurred");
       startOverlay.style.display = "flex";
@@ -707,7 +718,7 @@
 
       clearInterval(localTimer);
       localTimer = setInterval(() => {
-        const remaining = Math.max(0, Math.ceil((room.countdownEndsAt - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.ceil((room.countdownEndsAt - nowServer()) / 1000));
         startCountdown.textContent = remaining;
         timerBox.textContent = "--";
       }, 200);
@@ -744,7 +755,7 @@
       clearInterval(localTimer);
       localTimer = setInterval(() => {
         if (reveal) return;
-        const remaining = Math.max(0, Math.ceil((room.questionEndsAt - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.ceil((room.questionEndsAt - nowServer()) / 1000));
         timerBox.textContent = remaining;
       }, 200);
 
@@ -763,6 +774,16 @@
       });
     }
 
+    function scheduleHostCheck(delay) {
+      clearTimeout(hostTimer);
+      hostTimer = setTimeout(async () => {
+        if (!currentRoomId) return;
+        const snapshot = await get(ref(db, `rooms/${currentRoomId}`));
+        const latestRoom = snapshot.val();
+        if (latestRoom) hostControls(latestRoom);
+      }, Math.max(200, delay));
+    }
+
     async function hostControls(room) {
       if (room.hostId !== playerId) return;
       const players = getPlayersArray(room);
@@ -770,27 +791,45 @@
       if (room.phase === "waiting" && players.length === 2) {
         await update(ref(db, `rooms/${currentRoomId}`), {
           phase: "countdown",
-          countdownEndsAt: Date.now() + 5000
+          countdownEndsAt: nowServer() + 5000
         });
         return;
       }
 
-      if (room.phase === "countdown" && Date.now() >= room.countdownEndsAt) {
+      if (room.phase === "countdown") {
+        const delay = room.countdownEndsAt - nowServer();
+        if (delay > 0) {
+          scheduleHostCheck(delay + 100);
+          return;
+        }
+
         await update(ref(db, `rooms/${currentRoomId}`), {
           phase: "playing",
           currentQuestion: 0,
           answers: null,
-          questionEndsAt: Date.now() + 10000
+          questionEndsAt: nowServer() + 10000
         });
         return;
       }
 
-      if (room.phase === "playing" && Date.now() >= room.questionEndsAt) {
+      if (room.phase === "playing") {
+        const delay = room.questionEndsAt - nowServer();
+        if (delay > 0) {
+          scheduleHostCheck(delay + 100);
+          return;
+        }
+
         await revealRound(room, players);
         return;
       }
 
-      if (room.phase === "reveal" && room.revealEndsAt && Date.now() >= room.revealEndsAt) {
+      if (room.phase === "reveal" && room.revealEndsAt) {
+        const delay = room.revealEndsAt - nowServer();
+        if (delay > 0) {
+          scheduleHostCheck(delay + 100);
+          return;
+        }
+
         const next = (room.currentQuestion || 0) + 1;
         if (next >= questions.length) {
           await update(ref(db, `rooms/${currentRoomId}`), { phase: "finished" });
@@ -800,7 +839,7 @@
             currentQuestion: next,
             answers: null,
             lastResultText: null,
-            questionEndsAt: Date.now() + 10000
+            questionEndsAt: nowServer() + 10000
           });
         }
       }
@@ -838,7 +877,7 @@
         phase: "reveal",
         scores,
         lastResultText: text,
-        revealEndsAt: Date.now() + 3000
+        revealEndsAt: nowServer() + 3000
       });
     }
 
