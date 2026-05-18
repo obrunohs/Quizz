@@ -233,6 +233,36 @@
       outline: 4px solid #ffdf5d;
     }
 
+    .pick-labels {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 6px;
+      display: flex;
+      gap: 5px;
+      justify-content: center;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+
+    .pick-label {
+      background: #ffdf5d;
+      color: #222;
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: bold;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pick-label.other {
+      background: white;
+      color: #222;
+    }
+
     .answer.correct {
       background: #27ae60;
     }
@@ -666,8 +696,13 @@
       score1Box.textContent = scores[p1?.id] || 0;
       score2Box.textContent = scores[p2?.id] || 0;
 
-      choice1.textContent = answers[p1?.id] !== undefined ? "Respondeu" : "Não respondeu";
-      choice2.textContent = answers[p2?.id] !== undefined ? "Respondeu" : "Não respondeu";
+      if (q) {
+        choice1.textContent = answers[p1?.id] !== undefined ? `Escolheu: ${q.options[answers[p1.id]]}` : "Não respondeu";
+        choice2.textContent = answers[p2?.id] !== undefined ? `Escolheu: ${q.options[answers[p2.id]]}` : "Não respondeu";
+      } else {
+        choice1.textContent = "Não respondeu";
+        choice2.textContent = "Não respondeu";
+      }
 
       if (players.length < 2) {
         gameContent.classList.remove("blurred");
@@ -729,6 +764,7 @@
       const q = questions[qIndex];
       const answers = room.answers || {};
       const myAnswer = answers[playerId];
+      const players = getPlayersArray(room);
 
       roundText.textContent = `Rodada ${qIndex + 1} de ${questions.length}`;
       questionText.textContent = q.question;
@@ -740,6 +776,20 @@
         button.textContent = option;
 
         if (myAnswer === index) button.classList.add("mine");
+
+        const labelsBox = document.createElement("div");
+        labelsBox.className = "pick-labels";
+
+        players.forEach((player) => {
+          if (answers[player.id] === index) {
+            const label = document.createElement("span");
+            label.className = player.id === playerId ? "pick-label" : "pick-label other";
+            label.textContent = player.name;
+            labelsBox.appendChild(label);
+          }
+        });
+
+        button.appendChild(labelsBox);
 
         if (reveal) {
           button.disabled = true;
