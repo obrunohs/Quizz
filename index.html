@@ -365,7 +365,7 @@
     <h2>Criar sala</h2>
     <div class="input-group">
       <label for="roomNameInput">Nome da sala</label>
-      <input id="roomNameInput" type="text" placeholder="Ex: sala do Bruno" />
+      <input id="roomNameInput" type="text" placeholder="Nome da sala" />
     </div>
 
     <label class="check-row">
@@ -504,6 +504,8 @@
     let unsubscribeRoom = null;
     let lastHandledRound = -1;
     let serverOffset = 0;
+    let hostLeftTimeout = null;
+    let hostLeftHandled = false;
 
     const lobbyScreen = document.getElementById("lobbyScreen");
     const gameScreen = document.getElementById("gameScreen");
@@ -611,6 +613,7 @@
       });
 
       await onDisconnect(ref(db, `rooms/${roomId}/players/${playerId}/online`)).set(false);
+      await onDisconnect(ref(db, `rooms/${roomId}/hostLeft`)).set(true);
       openRoom(roomId);
     }
 
@@ -670,6 +673,7 @@
           location.reload();
           return;
         }
+        if (checkHostLeft(room)) return;
         renderRoom(room);
         hostControls(room);
       });
@@ -677,6 +681,38 @@
 
     function getPlayersArray(room) {
       return Object.entries(room.players || {}).map(([id, data]) => ({ id, ...data }));
+    }
+
+    function checkHostLeft(room) {
+      const host = room.players?.[room.hostId];
+      const hostIsGone = room.hostLeft === true || !host || host.online === false;
+
+      if (!hostIsGone || room.hostId === playerId || hostLeftHandled) {
+        return false;
+      }
+
+      hostLeftHandled = true;
+      clearInterval(localTimer);
+      clearTimeout(hostTimer);
+
+      startOverlay.style.display = "flex";
+      gameContent.classList.add("blurred");
+      overlayTitle.textContent = "Dono da sala saiu";
+      startCountdown.textContent = "!";
+      overlayText.textContent = "O jogador dono da sala deixou o jogo. Você será movido para o lobby.";
+      statusBox.textContent = "Voltando para o lobby...";
+
+      hostLeftTimeout = setTimeout(() => {
+        currentRoomId = "";
+        hostLeftHandled = false;
+        gameScreen.style.display = "none";
+        winnerScreen.style.display = "none";
+        lobbyScreen.style.display = "block";
+        gameContent.classList.remove("blurred");
+        startOverlay.style.display = "none";
+      }, 5000);
+
+      return true;
     }
 
     function renderRoom(room) {
@@ -819,9 +855,28 @@
 
     async function sendAnswer(index) {
       if (!currentRoomId) return;
-      await update(ref(db, `rooms/${currentRoomId}/answers`), {
-        [playerId]: index
+
+      const result = await runTransaction(ref(db, `rooms/${currentRoomId}`), (room) => {
+        if (!room || room.phase !== "playing") return room;
+
+        const answers = room.answers || {};
+        const players = room.players || {};
+        const otherPlayerAlreadyPicked = Object.keys(players).some((id) => {
+          return id !== playerId && answers[id] === index;
+        });
+
+        if (otherPlayerAlreadyPicked) {
+          return;
+        }
+
+        answers[playerId] = index;
+        room.answers = answers;
+        return room;
       });
+
+      if (!result.committed) {
+        statusBox.textContent = "Essa resposta já foi escolhida pelo outro jogador.";
+      }
     }
 
     function scheduleHostCheck(delay) {
