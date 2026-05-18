@@ -750,6 +750,26 @@
       });
     });
 
+    function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 900;
+    }
+
+    async function tryLandscapeMode() {
+      if (!isMobileDevice()) return;
+
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock("landscape");
+        }
+      } catch (error) {
+        console.log("Não foi possível virar a tela automaticamente:", error);
+      }
+    }
+
     function getNameOrAlert() {
       const name = document.getElementById("playerNameInput").value.trim();
       if (!name) {
@@ -767,6 +787,7 @@
     async function createRoom() {
       const name = getNameOrAlert();
       if (!name) return;
+      await tryLandscapeMode();
 
       const roomName = document.getElementById("roomNameInput").value.trim() || `Sala de ${name}`;
       const locked = document.getElementById("lockedRoomInput").checked;
@@ -797,6 +818,7 @@
     async function joinRoom(roomId) {
       const name = getNameOrAlert();
       if (!name) return;
+      await tryLandscapeMode();
       if (!roomId) {
         alert("Digite o código da sala.");
         return;
