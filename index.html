@@ -285,6 +285,111 @@
       font-weight: bold;
     }
 
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .chat-box {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 12px;
+      min-height: 310px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-box h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #ffdf5d;
+      text-align: center;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-right: 4px;
+      max-height: 260px;
+    }
+
+    .chat-message {
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 12px;
+      padding: 8px;
+      font-size: 13px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .chat-name {
+      color: #ffdf5d;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .chat-form input {
+      flex: 1;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      outline: none;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    .chat-form button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #ffdf5d;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .quick-chat {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .quick-chat button {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.9);
+      color: #222;
+    }
+
+    .rematch-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .rematch-status {
+      margin-top: 8px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
     .help {
       margin-top: 12px;
       text-align: center;
@@ -449,6 +554,46 @@
         font-size: 16px;
       }
 
+      .game-layout {
+        grid-template-columns: 1fr 210px;
+        gap: 8px;
+      }
+
+      .chat-box {
+        min-height: 210px;
+        padding: 8px;
+        border-radius: 14px;
+      }
+
+      .chat-box h2 {
+        font-size: 14px;
+        margin-bottom: 5px;
+      }
+
+      .chat-messages {
+        max-height: 130px;
+      }
+
+      .chat-message {
+        font-size: 11px;
+        padding: 5px;
+      }
+
+      .chat-form input {
+        padding: 7px;
+        font-size: 12px;
+      }
+
+      .chat-form button {
+        padding: 7px;
+        font-size: 12px;
+      }
+
+      .quick-chat button {
+        font-size: 10px;
+        padding: 4px 7px;
+      }
+
       .pick-labels {
         bottom: 3px;
       }
@@ -527,6 +672,18 @@
         min-height: 46px;
         font-size: 14px;
       }
+
+      .game-layout {
+        grid-template-columns: 1fr 180px;
+      }
+
+      .chat-box {
+        min-height: 170px;
+      }
+
+      .chat-messages {
+        max-height: 92px;
+      }
     }
   </style>
 </head>
@@ -582,6 +739,8 @@
       <h1 id="roomTitle">Quiz Online</h1>
       <div class="room-code" id="roomCodeText"></div>
 
+      <div class="game-layout">
+        <section class="main-game-area">
       <div class="top-bar">
         <div class="player" id="player1Box">
           <h2 id="player1Name">Aguardando</h2>
@@ -611,14 +770,36 @@
         Qualquer jogador pode clicar na resposta. Cada um pode trocar sua escolha até o tempo acabar.
         O resultado só aparece depois dos 10 segundos.
       </p>
+        </section>
+
+        <aside class="chat-box">
+          <h2>Chat da sala</h2>
+          <div class="chat-messages" id="chatMessages"></div>
+          <form class="chat-form" id="chatForm">
+            <input id="chatInput" type="text" maxlength="80" placeholder="Mensagem..." />
+            <button type="submit">Enviar</button>
+          </form>
+          <div class="quick-chat">
+            <button type="button" data-msg="kkkk">kkkk</button>
+            <button type="button" data-msg="tu chutou">tu chutou</button>
+            <button type="button" data-msg="fácil">fácil</button>
+          </div>
+        </aside>
+      </div>
     </div>
   </main>
 
   <section class="box small-box" id="winnerScreen">
     <h1 id="winnerText"></h1>
     <p id="finalScore"></p>
+
+    <div class="rematch-box">
+      <button class="menu-btn" id="rematchBtn">Revanche</button>
+      <div class="rematch-status" id="rematchStatus">Aguardando jogadores...</div>
+    </div>
+
     <br />
-    <button class="menu-btn" onclick="location.reload()">Voltar ao início</button>
+    <button class="menu-btn secondary-btn" onclick="location.reload()">Voltar ao início</button>
   </section>
 
   <script type="module">
@@ -710,6 +891,11 @@
     const overlayText = document.getElementById("overlayText");
     const winnerText = document.getElementById("winnerText");
     const finalScore = document.getElementById("finalScore");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatForm = document.getElementById("chatForm");
+    const chatInput = document.getElementById("chatInput");
+    const rematchBtn = document.getElementById("rematchBtn");
+    const rematchStatus = document.getElementById("rematchStatus");
 
     lobbyScreen.style.display = "block";
 
@@ -722,6 +908,25 @@
       const code = document.getElementById("roomCodeInput").value.trim().toUpperCase();
       joinRoom(code);
     };
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+      await sendChatMessage(text);
+      chatInput.value = "";
+    });
+
+    document.querySelectorAll(".quick-chat button").forEach((button) => {
+      button.addEventListener("click", () => sendChatMessage(button.dataset.msg));
+    });
+
+    rematchBtn.addEventListener("click", async () => {
+      if (!currentRoomId) return;
+      await update(ref(db, `rooms/${currentRoomId}/rematch`), {
+        [playerId]: true
+      });
+    });
 
     onValue(ref(db, "rooms"), (snapshot) => {
       const rooms = snapshot.val() || {};
@@ -820,7 +1025,10 @@
         hostId: playerId,
         phase: "waiting",
         currentQuestion: 0,
+        matchNumber: 1,
         scores: {},
+        chat: {},
+        rematch: {},
         players: {
           [playerId]: {
             name,
@@ -894,6 +1102,8 @@
         }
         if (checkPlayerLeft(room)) return;
         renderRoom(room);
+        renderChat(room);
+        renderRematch(room);
         hostControls(room);
       });
     }
@@ -1080,6 +1290,50 @@
       }
     }
 
+    async function sendChatMessage(text) {
+      if (!currentRoomId || !myName) return;
+
+      const messageId = `${Date.now()}_${playerId}`;
+      await set(ref(db, `rooms/${currentRoomId}/chat/${messageId}`), {
+        playerId,
+        name: myName,
+        text,
+        createdAt: Date.now()
+      });
+    }
+
+    function renderChat(room) {
+      const chat = room.chat || {};
+      const messages = Object.values(chat)
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+        .slice(-30);
+
+      chatMessages.innerHTML = "";
+
+      if (messages.length === 0) {
+        chatMessages.innerHTML = `<div class="chat-message">Nenhuma mensagem ainda.</div>`;
+        return;
+      }
+
+      messages.forEach((msg) => {
+        const div = document.createElement("div");
+        div.className = "chat-message";
+
+        const name = document.createElement("span");
+        name.className = "chat-name";
+        name.textContent = msg.name || "Jogador";
+
+        const text = document.createElement("span");
+        text.textContent = msg.text || "";
+
+        div.appendChild(name);
+        div.appendChild(text);
+        chatMessages.appendChild(div);
+      });
+
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
     async function sendAnswer(index) {
       if (!currentRoomId) return;
 
@@ -1119,6 +1373,15 @@
     async function hostControls(room) {
       if (room.hostId !== playerId) return;
       const players = getPlayersArray(room);
+
+      if (room.phase === "finished") {
+        const rematch = room.rematch || {};
+        const everyoneAccepted = players.length === 2 && players.every((player) => rematch[player.id]);
+        if (everyoneAccepted) {
+          await startRematch(room);
+        }
+        return;
+      }
 
       if (room.phase === "waiting" && players.length === 2) {
         await update(ref(db, `rooms/${currentRoomId}`), {
@@ -1213,6 +1476,34 @@
       });
     }
 
+    function renderRematch(room) {
+      if (room.phase !== "finished") return;
+
+      const players = getPlayersArray(room);
+      const rematch = room.rematch || {};
+      const accepted = players.filter((player) => rematch[player.id]).length;
+
+      rematchStatus.textContent = `Revanche: ${accepted}/${players.length} aceitaram.`;
+      rematchBtn.disabled = !!rematch[playerId];
+      rematchBtn.textContent = rematch[playerId] ? "Você aceitou" : "Revanche";
+    }
+
+    async function startRematch(room) {
+      const nextMatch = (room.matchNumber || 1) + 1;
+      lastHandledRound = -1;
+
+      await update(ref(db, `rooms/${currentRoomId}`), {
+        phase: "countdown",
+        currentQuestion: 0,
+        matchNumber: nextMatch,
+        scores: {},
+        answers: null,
+        rematch: {},
+        lastResultText: null,
+        countdownEndsAt: nowServer() + 5000
+      });
+    }
+
     async function renderWinner(room, players) {
       clearInterval(localTimer);
       await backToPortraitMode();
@@ -1234,6 +1525,7 @@
       }
 
       finalScore.textContent = `Placar final: ${p1.name} ${s1} x ${s2} ${p2.name}`;
+      renderRematch(room);
     }
   </script>
 </body>
