@@ -1625,6 +1625,26 @@
     let hostLeftTimeout = null;
     let hostLeftHandled = false;
     let lastPowerEffectKey = "";
+    let questionLoopSound = null;
+    let lastQuestionSoundKey = "";
+    let lastSixSecondSoundKey = "";
+    let lastRevealSoundKey = "";
+    let audioUnlocked = false;
+
+    const soundFiles = {
+      questionStart: "som-pergunta-10s.mp3",
+      sixSeconds: "som-6-segundos.mp3",
+      reveal: "som-revelar-resposta.mp3",
+      point: "som-ponto.mp3",
+      shuffle: "som-embaralhar.mp3",
+      shake: "som-tremor.mp3",
+      emojiSpam: "som-spam-emoji.mp3",
+      shield: "som-escudo.mp3",
+      pie: "som-torta.mp3",
+      freeze: "som-gelo.mp3",
+      fire: "som-fogo.mp3",
+      witch: "som-bruxa.mp3"
+    };
 
     const lobbyScreen = document.getElementById("lobbyScreen");
     const gameScreen = document.getElementById("gameScreen");
@@ -1666,6 +1686,49 @@
     onValue(ref(db, ".info/serverTimeOffset"), (snapshot) => {
       serverOffset = snapshot.val() || 0;
     });
+
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+
+      Object.values(soundFiles).forEach((src) => {
+        const audio = new Audio(src);
+        audio.volume = 0;
+        audio.play().then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+        }).catch(() => {});
+      });
+    }
+
+    function playSound(name, options = {}) {
+      const src = soundFiles[name];
+      if (!src) return null;
+
+      const audio = new Audio(src);
+      audio.volume = options.volume ?? 0.75;
+      audio.loop = options.loop || false;
+
+      if (options.duration) {
+        setTimeout(() => {
+          audio.pause();
+          audio.currentTime = 0;
+        }, options.duration);
+      }
+
+      audio.play().catch(() => {});
+      return audio;
+    }
+
+    function stopQuestionSound() {
+      if (questionLoopSound) {
+        questionLoopSound.pause();
+        questionLoopSound.currentTime = 0;
+        questionLoopSound = null;
+      }
+    }
+
+    document.addEventListener("click", unlockAudio, { once: true });
 
     document.getElementById("createRoomBtn").onclick = createRoom;
     document.getElementById("joinRoomBtn").onclick = () => {
@@ -1977,6 +2040,7 @@
       }
 
       if (players.length < 2) {
+        stopQuestionSound();
         gameContent.classList.remove("blurred");
         startOverlay.style.display = "none";
         timerBox.textContent = "--";
@@ -1998,17 +2062,21 @@
         gameContent.classList.remove("blurred");
         startOverlay.style.display = "none";
         renderQuestion(room, false);
+        handleQuestionSounds(room);
         return;
       }
 
       if (room.phase === "reveal") {
         gameContent.classList.remove("blurred");
         startOverlay.style.display = "none";
+        stopQuestionSound();
         renderQuestion(room, true);
+        handleRevealSounds(room);
         return;
       }
 
       if (room.phase === "finished") {
+        stopQuestionSound();
         renderWinner(room, players);
       }
     }
@@ -2157,6 +2225,7 @@
       const fromName = players[latest.from]?.name || "Jogador";
 
       if (latest.powerId === "blocked" && latest.target === playerId) {
+        playSound("shield", { duration: 5000, volume: 0.85 });
         showPowerToast(`🛡️ Seu escudo bloqueou o poder de ${fromName}!`);
         return;
       }
@@ -2164,32 +2233,38 @@
       if (latest.target !== playerId) return;
 
       if (latest.powerId === "shake") {
+        playSound("shake", { duration: 5000, volume: 0.9 });
         showPowerToast(`🌪️ ${fromName} fez sua tela tremer!`);
         gameContent.classList.add("shake-effect");
         setTimeout(() => gameContent.classList.remove("shake-effect"), 5000);
       }
 
       if (latest.powerId === "emojiSpam") {
+        playSound("emojiSpam", { duration: 5000, volume: 0.85 });
         showPowerToast(`😂 ${fromName} mandou spam de emojis!`);
         startEmojiSpam();
       }
 
       if (latest.powerId === "pie") {
+        playSound("pie", { duration: 5000, volume: 0.9 });
         showPowerToast(`🥧 ${fromName} jogou uma torta na sua tela!`);
         startPieEffect();
       }
 
       if (latest.powerId === "freeze") {
+        playSound("freeze", { duration: 5000, volume: 0.9 });
         showPowerToast(`🥶 ${fromName} congelou sua tela!`);
         startFreezeEffect();
       }
 
       if (latest.powerId === "fire") {
+        playSound("fire", { duration: 5000, volume: 0.9 });
         showPowerToast(`🔥 ${fromName} queimou suas respostas!`);
         startFireEffect();
       }
 
       if (latest.powerId === "witch") {
+        playSound("witch", { duration: 7000, volume: 0.9 });
         const playersArray = getPlayersArray(room);
         const fromIndex = playersArray.findIndex((player) => player.id === latest.from);
         const targetIndex = playersArray.findIndex((player) => player.id === latest.target);
@@ -2199,6 +2274,7 @@
       }
 
       if (latest.powerId === "shuffle") {
+        playSound("shuffle", { duration: 5000, volume: 0.85 });
         showPowerToast(`🔀 ${fromName} embaralhou suas respostas!`);
       }
     }
@@ -2344,6 +2420,47 @@
         ...item,
         text: shuffleText(item.text, (activeShuffle.createdAt || 1) + item.originalIndex)
       }));
+    }
+
+    function handleQuestionSounds(room) {
+      const round = room.currentQuestion || 0;
+      const match = room.matchNumber || 1;
+      const questionKey = `${match}_${round}`;
+
+      if (lastQuestionSoundKey !== questionKey) {
+        lastQuestionSoundKey = questionKey;
+        lastSixSecondSoundKey = "";
+        stopQuestionSound();
+        questionLoopSound = playSound("questionStart", { loop: true, duration: 10000, volume: 0.45 });
+      }
+
+      const remaining = Math.max(0, Math.ceil((room.questionEndsAt - nowServer()) / 1000));
+      const sixKey = `${match}_${round}_6`;
+
+      if (remaining <= 6 && lastSixSecondSoundKey !== sixKey) {
+        lastSixSecondSoundKey = sixKey;
+        playSound("sixSeconds", { volume: 0.85 });
+      }
+    }
+
+    function handleRevealSounds(room) {
+      const round = room.currentQuestion || 0;
+      const match = room.matchNumber || 1;
+      const revealKey = `${match}_${round}_reveal`;
+
+      if (lastRevealSoundKey === revealKey) return;
+      lastRevealSoundKey = revealKey;
+
+      playSound("reveal", { volume: 0.8 });
+
+      const scores = room.scores || {};
+      const previousScores = room.previousScores || {};
+      const myScore = scores[playerId] || 0;
+      const oldMyScore = previousScores[playerId] || 0;
+
+      if (myScore > oldMyScore) {
+        setTimeout(() => playSound("point", { volume: 0.9 }), 450);
+      }
     }
 
     function renderQuestion(room, reveal) {
@@ -2616,6 +2733,7 @@
       const q = questions[qIndex];
       const answers = room.answers || {};
       const scores = room.scores || {};
+      const previousScores = { ...scores };
       const p1 = players[0];
       const p2 = players[1];
       const p1Correct = answers[p1.id] === q.correct;
@@ -2639,6 +2757,7 @@
       await update(ref(db, `rooms/${currentRoomId}`), {
         phase: "reveal",
         scores,
+        previousScores,
         lastResultText: text,
         revealEndsAt: nowServer() + 3000
       });
