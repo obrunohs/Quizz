@@ -1626,6 +1626,7 @@
     let hostLeftHandled = false;
     let lastPowerEffectKey = "";
     let questionLoopSound = null;
+    let activeSounds = [];
     let lastQuestionSoundKey = "";
     let lastSixSecondSoundKey = "";
     let lastRevealSoundKey = "";
@@ -1708,16 +1709,27 @@
       const audio = new Audio(src);
       audio.volume = options.volume ?? 0.75;
       audio.loop = options.loop || false;
+      activeSounds.push(audio);
 
       if (options.duration) {
         setTimeout(() => {
           audio.pause();
           audio.currentTime = 0;
+          activeSounds = activeSounds.filter((item) => item !== audio);
         }, options.duration);
       }
 
       audio.play().catch(() => {});
       return audio;
+    }
+
+    function stopAllSounds() {
+      activeSounds.forEach((audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+      activeSounds = [];
+      stopQuestionSound();
     }
 
     function stopQuestionSound() {
@@ -1949,6 +1961,7 @@
       unsubscribeRoom = onValue(ref(db, `rooms/${roomId}`), (snapshot) => {
         const room = snapshot.val();
         if (!room) {
+          stopAllSounds();
           alert("Sala encerrada.");
           location.reload();
           return;
@@ -1982,6 +1995,7 @@
       hostLeftHandled = true;
       clearInterval(localTimer);
       clearTimeout(hostTimer);
+      stopAllSounds();
 
       const leftPlayer = players.find((player) => player.online === false);
       const leftName = hostIsGone ? "O dono da sala" : (leftPlayer?.name || "O outro jogador");
@@ -1994,6 +2008,7 @@
       statusBox.textContent = "Voltando para o lobby...";
 
       hostLeftTimeout = setTimeout(async () => {
+        stopAllSounds();
         await backToPortraitMode();
         currentRoomId = "";
         hostLeftHandled = false;
@@ -2040,7 +2055,7 @@
       }
 
       if (players.length < 2) {
-        stopQuestionSound();
+        stopAllSounds();
         gameContent.classList.remove("blurred");
         startOverlay.style.display = "none";
         timerBox.textContent = "--";
@@ -2264,7 +2279,7 @@
       }
 
       if (latest.powerId === "witch") {
-        playSound("witch", { duration: 7000, volume: 0.9 });
+        setTimeout(() => playSound("witch", { duration: 4000, volume: 0.9 }), 3000);
         const playersArray = getPlayersArray(room);
         const fromIndex = playersArray.findIndex((player) => player.id === latest.from);
         const targetIndex = playersArray.findIndex((player) => player.id === latest.target);
@@ -2431,7 +2446,7 @@
         lastQuestionSoundKey = questionKey;
         lastSixSecondSoundKey = "";
         stopQuestionSound();
-        questionLoopSound = playSound("questionStart", { loop: true, duration: 10000, volume: 0.45 });
+        questionLoopSound = playSound("questionStart", { loop: true, duration: 10000, volume: 0.25 });
       }
 
       const remaining = Math.max(0, Math.ceil((room.questionEndsAt - nowServer()) / 1000));
