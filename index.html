@@ -335,6 +335,16 @@
     }
 
     @media (max-width: 760px) {
+      body {
+        padding: 10px;
+        align-items: flex-start;
+      }
+
+      .box {
+        padding: 14px;
+        border-radius: 18px;
+      }
+
       .top-bar {
         grid-template-columns: 1fr;
       }
@@ -349,6 +359,173 @@
 
       .question {
         font-size: 22px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      body {
+        padding: 8px;
+        align-items: flex-start;
+        overflow: auto;
+      }
+
+      .box {
+        max-width: 100%;
+        padding: 10px 14px;
+        border-radius: 16px;
+      }
+
+      h1 {
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
+
+      .room-code {
+        margin: 4px 0 8px;
+        padding: 6px;
+        font-size: 13px;
+      }
+
+      .top-bar {
+        grid-template-columns: 1fr 82px 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .player {
+        padding: 8px;
+        border-radius: 14px;
+      }
+
+      .player h2 {
+        font-size: 16px;
+        margin-bottom: 2px;
+      }
+
+      .score {
+        font-size: 28px;
+      }
+
+      .choice-text {
+        font-size: 12px;
+        min-height: 16px;
+        margin-top: 2px;
+      }
+
+      .timer-box {
+        width: 74px;
+        height: 74px;
+        border-width: 5px;
+        font-size: 34px;
+      }
+
+      .question-card {
+        min-height: 84px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 16px;
+        gap: 5px;
+      }
+
+      .round {
+        font-size: 14px;
+      }
+
+      .question {
+        font-size: 24px;
+        line-height: 1.15;
+      }
+
+      .answers {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .answer {
+        min-height: 52px;
+        padding: 10px 8px 18px;
+        border-radius: 14px;
+        font-size: 16px;
+      }
+
+      .pick-labels {
+        bottom: 3px;
+      }
+
+      .pick-label {
+        font-size: 9px;
+        padding: 2px 5px;
+      }
+
+      .status {
+        font-size: 14px;
+        min-height: 20px;
+      }
+
+      .help {
+        display: none;
+      }
+
+      .countdown-overlay {
+        border-radius: 16px;
+      }
+
+      .countdown-overlay h2 {
+        font-size: 24px;
+      }
+
+      .countdown-number {
+        font-size: 60px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 390px) {
+      h1,
+      .room-code {
+        display: none;
+      }
+
+      .top-bar {
+        grid-template-columns: 1fr 64px 1fr;
+        margin-bottom: 6px;
+      }
+
+      .timer-box {
+        width: 58px;
+        height: 58px;
+        font-size: 28px;
+      }
+
+      .player {
+        padding: 6px;
+      }
+
+      .player h2 {
+        font-size: 14px;
+      }
+
+      .score {
+        font-size: 24px;
+      }
+
+      .question-card {
+        min-height: 70px;
+        padding: 8px;
+        margin-bottom: 7px;
+      }
+
+      .round {
+        font-size: 12px;
+      }
+
+      .question {
+        font-size: 20px;
+      }
+
+      .answer {
+        min-height: 46px;
+        font-size: 14px;
       }
     }
   </style>
