@@ -373,13 +373,19 @@
     }
 
     @keyframes screenShake {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      15% { transform: translate(18px, -14px) rotate(-2deg); }
-      30% { transform: translate(-20px, 16px) rotate(2deg); }
-      45% { transform: translate(16px, 18px) rotate(-1.5deg); }
-      60% { transform: translate(-18px, -16px) rotate(1.5deg); }
-      75% { transform: translate(14px, -20px) rotate(-2deg); }
-      100% { transform: translate(-16px, 14px) rotate(2deg); }
+      0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      8% { transform: translate(34px, -30px) rotate(-5deg) scale(1.03); }
+      16% { transform: translate(-38px, 28px) rotate(5deg) scale(0.97); }
+      24% { transform: translate(32px, 34px) rotate(-4deg) scale(1.04); }
+      32% { transform: translate(-36px, -32px) rotate(4deg) scale(0.96); }
+      40% { transform: translate(42px, -36px) rotate(-6deg) scale(1.05); }
+      48% { transform: translate(-44px, 38px) rotate(6deg) scale(0.95); }
+      56% { transform: translate(36px, 30px) rotate(-5deg) scale(1.04); }
+      64% { transform: translate(-34px, -28px) rotate(5deg) scale(0.96); }
+      72% { transform: translate(40px, -34px) rotate(-4deg) scale(1.03); }
+      80% { transform: translate(-38px, 32px) rotate(4deg) scale(0.97); }
+      90% { transform: translate(30px, -26px) rotate(-3deg) scale(1.02); }
+      100% { transform: translate(-28px, 24px) rotate(3deg) scale(1); }
     }
 
     .pie-effect,
@@ -389,6 +395,109 @@
       inset: 0;
       pointer-events: none;
       z-index: 70;
+      overflow: hidden;
+    }
+
+    .pie-effect {
+      background: rgba(133, 86, 22, 0.35);
+      backdrop-filter: blur(10px) saturate(1.35);
+      animation: pieScreenFade 5s ease forwards;
+    }
+
+    .pie-splat {
+      position: absolute;
+      inset: -22%;
+      background:
+        radial-gradient(circle at 30% 28%, rgba(231, 180, 70, 0.98) 0 20%, transparent 21%),
+        radial-gradient(circle at 62% 35%, rgba(159, 101, 28, 0.96) 0 25%, transparent 26%),
+        radial-gradient(circle at 44% 62%, rgba(212, 145, 42, 0.98) 0 32%, transparent 33%),
+        radial-gradient(circle at 76% 72%, rgba(99, 63, 18, 0.88) 0 20%, transparent 21%),
+        linear-gradient(180deg, rgba(219, 159, 49, 0.92), rgba(113, 72, 21, 0.84));
+      filter: blur(13px) saturate(1.5);
+      animation: pieSplat 5s ease forwards;
+    }
+
+    .pie-splat::after {
+      content: "";
+      position: absolute;
+      left: 4%;
+      right: 4%;
+      top: 34%;
+      height: 145%;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(83, 52, 14, 0.62) 0 18px,
+        rgba(215, 161, 54, 0.72) 18px 48px,
+        transparent 48px 76px
+      );
+      border-radius: 45% 45% 0 0;
+      animation: pieDrip 5s ease forwards;
+    }
+
+    @keyframes pieScreenFade {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      78% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes pieSplat {
+      0% { transform: scale(0.04); opacity: 0; }
+      10% { transform: scale(1.16); opacity: 1; }
+      78% { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1.22) translateY(70px); opacity: 0; }
+    }
+
+    @keyframes pieDrip {
+      0% { transform: translateY(-70%); opacity: 0; }
+      18% { transform: translateY(-25%); opacity: 1; }
+      78% { transform: translateY(22%); opacity: 0.95; }
+      100% { transform: translateY(55%); opacity: 0; }
+    }
+
+    .freeze-effect {
+      background: rgba(130, 220, 255, 0.38);
+      backdrop-filter: blur(7px) saturate(1.45);
+      animation: freezeFade 5s ease forwards;
+    }
+
+    .freeze-effect::before {
+      content: "🥶";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 150px;
+      filter: drop-shadow(0 0 18px rgba(185, 240, 255, 0.95));
+      animation: freezePulse 0.8s ease infinite alternate;
+      z-index: 2;
+    }
+
+    .freeze-effect::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.25) 0 3px, transparent 3px 18px),
+        radial-gradient(circle at 20% 25%, rgba(255,255,255,0.45), transparent 20%),
+        radial-gradient(circle at 80% 65%, rgba(255,255,255,0.35), transparent 22%);
+      opacity: 0.95;
+    }
+
+    @keyframes freezeFade {
+      0% { opacity: 0; }
+      12% { opacity: 1; }
+      82% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes freezePulse {
+      from { transform: scale(0.9) rotate(-2deg); }
+      to { transform: scale(1.18) rotate(2deg); }
+    }
+
+    .fire-effect {
       background: radial-gradient(circle, rgba(255, 105, 0, 0.16), rgba(60, 0, 0, 0.34));
       animation: fireFade 5s ease forwards;
     }
@@ -427,40 +536,6 @@
     @keyframes flameFlicker {
       from { transform: scale(0.9) translateY(2px); opacity: 0.75; }
       to { transform: scale(1.25) translateY(-3px); opacity: 1; }
-    }
-
-    .fire-flame {
-      position: absolute;
-      bottom: -70px;
-      font-size: 48px;
-      animation: flameRise 2.2s ease-in forwards;
-      filter: drop-shadow(0 0 12px orange);
-    }
-
-    @keyframes fireFade {
-      0% { opacity: 0; }
-      10% { opacity: 1; }
-      82% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes flameRise {
-      0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 0; }
-      20% { opacity: 1; }
-      100% { transform: translateY(-115vh) scale(1.6) rotate(18deg); opacity: 0; }
-    }opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    @keyframes freezePulse {
-      from { transform: scale(0.9); }
-      to { transform: scale(1.18); }
-    }
-
-    .fire-effect {
-      background: radial-gradient(circle, rgba(255, 100, 0, 0.18), rgba(120, 0, 0, 0.38));
-      backdrop-filter: blur(2px);
-      animation: fireFade 5s ease forwards;
     }
 
     .fire-flame {
