@@ -369,50 +369,12 @@
     .quick-chat button {
       border: none;
       border-radius: 999px;
-      padding: 5px 8px;
-      font-size: 11px;
+      padding: 6px 9px;
+      font-size: 12px;
       font-weight: bold;
       cursor: pointer;
       background: rgba(255, 255, 255, 0.9);
       color: #222;
-    }
-
-    .emoji-reactions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
-    }
-
-    .emoji-reactions button {
-      width: 34px;
-      height: 34px;
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 18px;
-      background: rgba(255, 255, 255, 0.92);
-      transition: 0.15s;
-    }
-
-    .emoji-reactions button:hover {
-      transform: scale(1.12);
-    }
-
-    .player-emoji {
-      display: inline-block;
-      margin-left: 6px;
-      font-size: 24px;
-      vertical-align: middle;
-      animation: emojiPop 0.25s ease;
-    }
-
-    @keyframes emojiPop {
-      from { transform: scale(0.4); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
     }
 
     .rematch-box {
@@ -781,7 +743,7 @@
         <section class="main-game-area">
       <div class="top-bar">
         <div class="player" id="player1Box">
-          <h2><span id="player1Name">Aguardando</span><span class="player-emoji" id="player1Emoji"></span></h2>
+          <h2 id="player1Name">Aguardando</h2>
           <div class="score" id="score1">0</div>
           <div class="choice-text" id="choice1">Não respondeu</div>
         </div>
@@ -789,7 +751,7 @@
         <div class="timer-box" id="timer">--</div>
 
         <div class="player" id="player2Box">
-          <h2><span id="player2Name">Aguardando</span><span class="player-emoji" id="player2Emoji"></span></h2>
+          <h2 id="player2Name">Aguardando</h2>
           <div class="score" id="score2">0</div>
           <div class="choice-text" id="choice2">Não respondeu</div>
         </div>
@@ -821,26 +783,6 @@
             <button type="button" data-msg="kkkk">kkkk</button>
             <button type="button" data-msg="tu chutou">tu chutou</button>
             <button type="button" data-msg="fácil">fácil</button>
-            <button type="button" data-msg="andaa">andaa</button>
-            <button type="button" data-msg="fraco">fraco</button>
-            <button type="button" data-msg="mds">mds</button>
-            <button type="button" data-msg="vai perder">vai perder</button>
-            <button type="button" data-msg="nossa">nossa</button>
-            <button type="button" data-msg="sim">sim</button>
-            <button type="button" data-msg="não">não</button>
-            <button type="button" data-msg="vamos de novo?">vamos de novo?</button>
-          </div>
-
-          <div class="emoji-reactions" id="emojiReactions">
-            <button type="button" data-emoji="😂">😂</button>
-            <button type="button" data-emoji="🤣">🤣</button>
-            <button type="button" data-emoji="😅">😅</button>
-            <button type="button" data-emoji="😎">😎</button>
-            <button type="button" data-emoji="🤬">🤬</button>
-            <button type="button" data-emoji="😠">😠</button>
-            <button type="button" data-emoji="👎">👎</button>
-            <button type="button" data-emoji="👍">👍</button>
-            <button type="button" data-emoji="😮">😮</button>
           </div>
         </aside>
       </div>
@@ -933,8 +875,6 @@
     const player2Name = document.getElementById("player2Name");
     const player1Box = document.getElementById("player1Box");
     const player2Box = document.getElementById("player2Box");
-    const player1Emoji = document.getElementById("player1Emoji");
-    const player2Emoji = document.getElementById("player2Emoji");
     const score1Box = document.getElementById("score1");
     const score2Box = document.getElementById("score2");
     const choice1 = document.getElementById("choice1");
@@ -979,10 +919,6 @@
 
     document.querySelectorAll(".quick-chat button").forEach((button) => {
       button.addEventListener("click", () => sendChatMessage(button.dataset.msg));
-    });
-
-    document.querySelectorAll(".emoji-reactions button").forEach((button) => {
-      button.addEventListener("click", () => sendEmojiReaction(button.dataset.emoji));
     });
 
     rematchBtn.addEventListener("click", async () => {
@@ -1093,7 +1029,6 @@
         scores: {},
         chat: {},
         rematch: {},
-        reactions: {},
         players: {
           [playerId]: {
             name,
@@ -1229,10 +1164,6 @@
       roomTitle.textContent = room.name || "Quiz Online";
       player1Name.textContent = p1?.name || "Aguardando";
       player2Name.textContent = p2?.name || "Aguardando";
-
-      const reactions = room.reactions || {};
-      player1Emoji.textContent = p1 ? (reactions[p1.id]?.emoji || "") : "";
-      player2Emoji.textContent = p2 ? (reactions[p2.id]?.emoji || "") : "";
       player1Box.classList.toggle("me", p1?.id === playerId);
       player2Box.classList.toggle("me", p2?.id === playerId);
       score1Box.textContent = scores[p1?.id] || 0;
@@ -1371,14 +1302,7 @@
       });
     }
 
-    async function sendEmojiReaction(emoji) {
-      if (!currentRoomId) return;
-
-      await update(ref(db, `rooms/${currentRoomId}/reactions/${playerId}`), {
-        emoji,
-        updatedAt: Date.now()
-      });
-    }(room) {
+    function renderChat(room) {
       const chat = room.chat || {};
       const messages = Object.values(chat)
         .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
