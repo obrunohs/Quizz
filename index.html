@@ -373,11 +373,100 @@
     }
 
     @keyframes screenShake {
-      0% { transform: translate(0, 0); }
-      25% { transform: translate(5px, -4px); }
-      50% { transform: translate(-5px, 4px); }
-      75% { transform: translate(4px, 5px); }
-      100% { transform: translate(-4px, -5px); }
+      0% { transform: translate(0, 0) rotate(0deg); }
+      15% { transform: translate(18px, -14px) rotate(-2deg); }
+      30% { transform: translate(-20px, 16px) rotate(2deg); }
+      45% { transform: translate(16px, 18px) rotate(-1.5deg); }
+      60% { transform: translate(-18px, -16px) rotate(1.5deg); }
+      75% { transform: translate(14px, -20px) rotate(-2deg); }
+      100% { transform: translate(-16px, 14px) rotate(2deg); }
+    }
+
+    .pie-effect,
+    .freeze-effect,
+    .fire-effect {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .pie-splat {
+      width: 120vmax;
+      height: 120vmax;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.96) 0 18%, rgba(245,222,179,0.94) 19% 32%, rgba(255,255,255,0.85) 33% 44%, rgba(255,255,255,0.55) 45% 55%, transparent 56%);
+      filter: blur(3px);
+      animation: pieSplat 5s ease forwards;
+    }
+
+    @keyframes pieSplat {
+      0% { transform: scale(0.04); opacity: 0; }
+      15% { transform: scale(0.72); opacity: 1; }
+      75% { transform: scale(0.78); opacity: 0.97; }
+      100% { transform: scale(1.08); opacity: 0; }
+    }
+
+    .freeze-effect {
+      background: rgba(150, 220, 255, 0.28);
+      backdrop-filter: blur(5px) saturate(1.3);
+      animation: freezeFade 5s ease forwards;
+    }
+
+    .freeze-effect::before {
+      content: "🥶";
+      font-size: 110px;
+      animation: freezePulse 1s ease infinite alternate;
+    }
+
+    .freeze-effect::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, rgba(255,255,255,0.22) 0 3px, transparent 3px 16px);
+    }
+
+    @keyframes freezeFade {
+      0% { opacity: 0; }
+      12% { opacity: 1; }
+      82% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes freezePulse {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.18); }
+    }
+
+    .fire-effect {
+      background: radial-gradient(circle, rgba(255, 100, 0, 0.18), rgba(120, 0, 0, 0.38));
+      backdrop-filter: blur(2px);
+      animation: fireFade 5s ease forwards;
+    }
+
+    .fire-flame {
+      position: absolute;
+      bottom: -70px;
+      font-size: 48px;
+      animation: flameRise 2.2s ease-in forwards;
+      filter: drop-shadow(0 0 12px orange);
+    }
+
+    @keyframes fireFade {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      82% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes flameRise {
+      0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translateY(-115vh) scale(1.6) rotate(18deg); opacity: 0; }
     }
 
     .slow-effect .answer {
@@ -395,15 +484,16 @@
 
     .emoji-float {
       position: absolute;
-      bottom: -40px;
-      font-size: 32px;
-      animation: emojiFloat 2.7s ease-out forwards;
+      font-size: 42px;
+      animation: emojiFloat 5s ease-out forwards;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
     }
 
     @keyframes emojiFloat {
-      0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 0; }
-      15% { opacity: 1; }
-      100% { transform: translateY(-115vh) scale(1.5) rotate(25deg); opacity: 0; }
+      0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+      12% { transform: scale(1.25) rotate(12deg); opacity: 1; }
+      75% { transform: scale(1.05) rotate(-8deg); opacity: 1; }
+      100% { transform: scale(0.7) rotate(20deg); opacity: 0; }
     }
 
     .power-toast {
@@ -1655,7 +1745,9 @@
       shake: { icon: "🌪️", name: "Tremer" },
       emojiSpam: { icon: "😂", name: "Spam" },
       shield: { icon: "🛡️", name: "Escudo" },
-      slow: { icon: "🐢", name: "Slow" }
+      pie: { icon: "🥧", name: "Torta" },
+      freeze: { icon: "🥶", name: "Gelo" },
+      fire: { icon: "🔥", name: "Fogo" }
     };
 
     function getRandomPowers() {
@@ -1764,7 +1856,7 @@
       if (latest.powerId === "shake") {
         showPowerToast(`🌪️ ${fromName} fez sua tela tremer!`);
         gameContent.classList.add("shake-effect");
-        setTimeout(() => gameContent.classList.remove("shake-effect"), 3000);
+        setTimeout(() => gameContent.classList.remove("shake-effect"), 5000);
       }
 
       if (latest.powerId === "emojiSpam") {
@@ -1772,10 +1864,19 @@
         startEmojiSpam();
       }
 
-      if (latest.powerId === "slow") {
-        showPowerToast(`🐢 ${fromName} deixou seu jogo lento!`);
-        gameContent.classList.add("slow-effect");
-        setTimeout(() => gameContent.classList.remove("slow-effect"), 4000);
+      if (latest.powerId === "pie") {
+        showPowerToast(`🥧 ${fromName} jogou uma torta na sua tela!`);
+        startPieEffect();
+      }
+
+      if (latest.powerId === "freeze") {
+        showPowerToast(`🥶 ${fromName} congelou sua tela!`);
+        startFreezeEffect();
+      }
+
+      if (latest.powerId === "fire") {
+        showPowerToast(`🔥 ${fromName} queimou suas perguntas!`);
+        startFireEffect();
       }
 
       if (latest.powerId === "shuffle") {
@@ -1799,16 +1900,49 @@
       rain.className = "emoji-rain";
       document.body.appendChild(rain);
 
-      for (let i = 0; i < 28; i++) {
+      for (let i = 0; i < 75; i++) {
         const emoji = document.createElement("div");
         emoji.className = "emoji-float";
         emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        emoji.style.left = Math.random() * 100 + "vw";
-        emoji.style.animationDelay = Math.random() * 1.2 + "s";
+        emoji.style.left = Math.random() * 92 + "vw";
+        emoji.style.top = Math.random() * 82 + "vh";
+        emoji.style.animationDelay = Math.random() * 1.1 + "s";
         rain.appendChild(emoji);
       }
 
-      setTimeout(() => rain.remove(), 4200);
+      setTimeout(() => rain.remove(), 5300);
+    }
+
+    function startPieEffect() {
+      const effect = document.createElement("div");
+      effect.className = "pie-effect";
+      effect.innerHTML = `<div class="pie-splat"></div>`;
+      document.body.appendChild(effect);
+      setTimeout(() => effect.remove(), 5200);
+    }
+
+    function startFreezeEffect() {
+      const effect = document.createElement("div");
+      effect.className = "freeze-effect";
+      document.body.appendChild(effect);
+      setTimeout(() => effect.remove(), 5200);
+    }
+
+    function startFireEffect() {
+      const effect = document.createElement("div");
+      effect.className = "fire-effect";
+      document.body.appendChild(effect);
+
+      for (let i = 0; i < 35; i++) {
+        const flame = document.createElement("div");
+        flame.className = "fire-flame";
+        flame.textContent = Math.random() > 0.25 ? "🔥" : "💥";
+        flame.style.left = Math.random() * 100 + "vw";
+        flame.style.animationDelay = Math.random() * 2.2 + "s";
+        effect.appendChild(flame);
+      }
+
+      setTimeout(() => effect.remove(), 5200);
     }
 
     function getDisplayOptions(room, q) {
